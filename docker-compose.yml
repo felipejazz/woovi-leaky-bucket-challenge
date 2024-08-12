@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  backend-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run start
+
