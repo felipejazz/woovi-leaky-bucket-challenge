@@ -1,7 +1,54 @@
-import app from './app';
+import Koa from 'koa';
+import Router from 'koa-router';
+import bodyParser from 'koa-bodyparser';
+import { graphqlHTTP } from 'koa-graphql';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { authMiddleware } from './middlewares/authMiddleware';
+import { resolvers } from './resolvers';
+import { typeDefs } from './schema';
 
-const PORT = process.env.PORT || 3000;
+const app = new Koa();
+const router = new Router();
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
+const contextMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
+  ctx.state.context = { ctx };
+  await next();
+};
+
+router.post('/auth/register', contextMiddleware, graphqlHTTP((request, response, ctx) => {
+  return {
+    schema,
+    graphiql: true,
+    context: { ctx },
+  };
+}));
+
+router.post('/auth/login', contextMiddleware, graphqlHTTP((request, response, ctx) => {
+  return {
+    schema,
+    graphiql: true,
+    context: { ctx },
+  };
+}));
+
+router.use(authMiddleware);
+
+router.all('/graphql', contextMiddleware, graphqlHTTP((request, response, ctx) => {
+  return {
+    schema,
+    graphiql: true,
+    context: { ctx },
+  };
+}));
+
+app.use(bodyParser());
+app.use(router.routes()).use(router.allowedMethods());
+
+app.listen(3000, () => {
+  console.log('🚀 Server running on http://localhost:3000/graphql');
 });

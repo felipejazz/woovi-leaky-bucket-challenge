@@ -3,9 +3,7 @@ import { AuthService } from '../services/AuthService';
 import { AuthUser } from '../models/AuthUser';
 import { v4 as uuidv4 } from 'uuid';
 import { IAuthRequestBody } from '../interfaces/Auth/IAuthRequestBody';
-import { UserService } from '../services/UserService';
 import { BucketService } from '../services/BucketService';
-import { IAuthUser } from '../interfaces/User/IAuthUser';
 import createCustomLogger from '../utils/logger';
 import { User } from '../models/User';
 
@@ -13,7 +11,7 @@ const logger = createCustomLogger('auth-controller');
 
 export class AuthController {
 
-    static async register(ctx: Context) {
+    static async register(ctx: Context): Promise<void> {
         const { username, password } = ctx.request.body as IAuthRequestBody;
 
         logger.info(`Attempting to register user: ${username}`);
@@ -22,7 +20,7 @@ export class AuthController {
         if (user) {
             logger.warn(`Registration failed: Username already exists - ${username}`);
             ctx.status = 400;
-            ctx.body = { message: 'Username already exists' };
+            ctx.body = { message: 'Username already exists' } as { message: string };
             return;
         }
 
@@ -35,10 +33,10 @@ export class AuthController {
         logger.info(`User registered successfully: ${username}`);
 
         ctx.status = 201;
-        ctx.body = { message: 'User registered successfully', userId: id };
+        ctx.body = { message: 'User registered successfully', token } as { message: string, token: string };
     }
 
-    static async login(ctx: Context) {
+    static async login(ctx: Context): Promise<void> {
         const { username, password } = ctx.request.body as IAuthRequestBody;
 
         logger.info(`Attempting login for user: ${username}`);
@@ -48,7 +46,7 @@ export class AuthController {
         if (!user || user.password !== password) {
             logger.warn(`Login failed for user: ${username} - Invalid credentials`);
             ctx.status = 401;
-            ctx.body = { message: 'Invalid credentials' };
+            ctx.body = { message: 'Invalid credentials' } as { message: string };
             return;
         }
 
@@ -57,16 +55,16 @@ export class AuthController {
         BucketService.startService(user.bucket);
         logger.info(`User logged in successfully: ${username}`);
 
-        ctx.body = { token };
+        ctx.body = { token } as { token: string };
     }
 
-    static async logout(ctx: Context) {
+    static async logout(ctx: Context): Promise<void> {
         const token = ctx.headers.authorization?.split(' ')[1];
 
         if (!token) {
             logger.warn('Logout failed: No token provided');
             ctx.status = 400;
-            ctx.body = { message: 'Token is required' };
+            ctx.body = { message: 'Token is required' } as { message: string };
             return;
         }
 
@@ -88,7 +86,7 @@ export class AuthController {
         logger.info(`User logged out successfully: ${user.username}`);
 
         ctx.status = 200;
-        ctx.body = { message: 'Logout successful, all tokens revoked' };
+        ctx.body = { message: 'Logout successful, all tokens revoked' } as { message: string };
     }
 
 }
