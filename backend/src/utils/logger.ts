@@ -1,13 +1,22 @@
 import winston from 'winston';
 
-const { combine, timestamp, printf, colorize } = winston.format;
+const colors: Record<string, string> = {
+    info: 'green',
+    warn: 'yellow',
+    error: 'red',
+    debug: 'blue'
+};
+
+winston.addColors(colors);
+
+const { combine, timestamp, printf } = winston.format;
 
 
 const customFormat = combine(
-    colorize(),
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     printf(({ timestamp, level, message, service }) => {
-        return `${timestamp} [${service}] ${level.toUpperCase()}: ${message}`;
+        const coloredLevel = winston.format.colorize().colorize(level, level.toUpperCase());
+        return `${timestamp} [${service}] ${coloredLevel}: ${message}`;
     })
 );
 
