@@ -87,7 +87,7 @@ describe('PixController.simulatePixQuery', () => {
         const response = await request(app.callback())
             .post('/pix/query')
             .send({ key: 'invalid-key', value: 100 });
-
+        expect(BucketService.consumeToken).toHaveBeenCalledTimes(1);
         expect(response.status).toBe(400);
         expect(response.body).toEqual({
             errorMessage: 'Invalid PIX KEY FORMAT. Allowed format: email@example.om or telephone \"+5511999999999\"',

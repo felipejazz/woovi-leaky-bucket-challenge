@@ -92,28 +92,25 @@ export class BucketService {
         logger.info(`Added new token for user: ${bucket.user.id}, tokens count: ${bucket.tokens.length}`);
     }
 
-    static getTokenToConsume( bucket: Bucket): string {
-        if (bucket.tokens.length === 0) {
-            logger.warn(`Cannot get token for user: ${bucket.user.id}, bucket is empty`);
-            throw new NoValidTokens()
-        }
+    static getTokenToConsume( bucket: Bucket): string  {
         const token = bucket.tokens[0]
+        if (!token) {
+            throw new TokenNotFound()
+        }
         logger.info(`Token to consume succefully retrieved for user ${bucket.user.id}`);
         return token
         
     }
     
 
-    static checkBucket({ bucket, token }: { bucket: Bucket, token: string }): boolean {
+    static checkBucket({ bucket }: { bucket: Bucket}): boolean {
         logger.info(`Checking if user token is in user bucket: ${bucket.user.id}`);
 
         if (bucket.tokens.length === 0) {
             logger.warn(`Bucket is empty. No valid tokens available for user: ${bucket.user.id}`);
-            logger.warn(`User token is not in user bucket: ${bucket.user.id}`);
-
             throw new NoValidTokens();
         }
-        logger.info(`User token is in user bucket`);
+        logger.info(`User bucket contains valid tokens`);
 
         return true;
     }

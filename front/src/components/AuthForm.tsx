@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { commitMutation } from 'react-relay';
 import { RelayEnvironment } from '../RelayEnvironment';
 import { LoginMutationResponse, RegisterMutationResponse } from '../interfaces/Responses';
 import { mutationsLoginMutation, mutationsRegisterMutation } from '../relay/mutations';
 import { useNavigate } from 'react-router-dom';
-import { PayloadError } from 'relay-runtime';
 
 const AuthForm: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -14,27 +13,58 @@ const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
-  const handleAuth = () => {
-    let token = localStorage.getItem('authToken');
+  const handleAuth = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem('authToken');
     if (token) {
-      navigate('/pix');  
+      navigate('/pix');
+      return;
     }
+
     const mutation = isLogin ? mutationsLoginMutation : mutationsRegisterMutation;
     commitMutation(RelayEnvironment, {
       mutation,
       variables: { username, password },
-      onCompleted: (response: {} | null, errors: readonly PayloadError[] | null | undefined) => {  
-        if (isLogin && (response as LoginMutationResponse).login?.token) {
-          const token = (response as LoginMutationResponse).login.token;
-          localStorage.setItem('authToken', token);
-          navigate('/login')
-        } else if (isLogin && !((response as RegisterMutationResponse).register?.token)){
-          alert('Login failed. You can register if you do not have an user.');
-        }else if (!isLogin && (response as RegisterMutationResponse).register?.token) {
-          alert('Registration successful! You can now log in.');
-          setIsLogin(true);
-        } else if (errors) {
-          alert('Authentication failed. Please try again.');
+      onCompleted: (response: {} | null) => {
+        switch (true) {
+          case isLogin: {
+            const loginResponse = response as LoginMutationResponse;
+            const token = loginResponse?.login?.token;
+
+            if (!token) {
+              alert('Login failed. You can register if you do not have a user or check your password.');
+              break;
+            }
+            localStorage.setItem('authToken', token);
+            navigate('/pix');
+            break;
+          }
+          case !isLogin: {
+            const registerResponse = response as RegisterMutationResponse;
+            const errorMessage = registerResponse?.register?.errorMessage;
+            const successMessage = registerResponse?.register?.successMessage;
+
+            if (successMessage) {
+              alert('Registration successful. You can now log in.');
+              setIsLogin(true);
+              break;
+            }
+
+            if (errorMessage) {
+              if (errorMessage === 'Username already exists') {
+                alert('User already exists in our database.');
+              } else {
+                alert('Registration failed due to unknown causes.');
+                console.log(errorMessage);
+              }
+              setIsLogin(true);
+            }
+            break;
+          }
+          default:
+            alert('Unexpected response format.');
+            break;
         }
       },
       onError: (err) => {
@@ -47,7 +77,7 @@ const AuthForm: React.FC = () => {
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>{isLogin ? 'Login' : 'Register'}</h2>
-      <div style={styles.form}>
+      <form onSubmit={handleAuth} style={styles.form}>
         <input
           type="text"
           value={username}
@@ -62,13 +92,13 @@ const AuthForm: React.FC = () => {
           placeholder="Password"
           style={styles.input}
         />
-        <button onClick={handleAuth} style={styles.button}>
+        <button type="submit" style={styles.button}>
           {isLogin ? 'Login' : 'Register'}
         </button>
-        <button onClick={() => setIsLogin(!isLogin)} style={styles.switchButton}>
+        <button type="button" onClick={() => setIsLogin(!isLogin)} style={styles.switchButton}>
           {isLogin ? 'Switch to Register' : 'Switch to Login'}
         </button>
-      </div>
+      </form>
     </div>
   );
 };

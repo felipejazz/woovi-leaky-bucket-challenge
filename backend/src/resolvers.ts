@@ -33,10 +33,10 @@ export const resolvers = {
       _: unknown,
       { username, password }: RegisterArgs,
       { ctx }: GraphQLContext
-    ): Promise<{ token: string } | { message: string }> => {
+    ): Promise<{ errorMessage: string } | { successMessage: string }> => {
       ctx.request.body = { username, password };
       await AuthController.register(ctx);
-      return ctx.body as { token: string } | { message: string };
+      return ctx.body as { errorMessage: string } | { successMessage: string };
     },
     login: async (
       _: unknown,
@@ -45,7 +45,7 @@ export const resolvers = {
     ): Promise<{ token: string } | { message: string }> => {
       ctx.request.body = { username, password };
       await AuthController.login(ctx);
-      return ctx.body as { token: string } | { message: string };
+      return ctx.body as { token: string; message: string };
     },
     logout: async (
       _: unknown,

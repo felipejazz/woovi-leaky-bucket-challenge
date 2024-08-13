@@ -20,7 +20,7 @@ export class AuthController {
         if (user) {
             logger.warn(`Registration failed: Username already exists - ${username}`);
             ctx.status = 400;
-            ctx.body = { message: 'Username already exists' } as { message: string };
+            ctx.body = { errorMessage: 'Username already exists' } as { errorMessage: string };
             return;
         }
 
@@ -33,7 +33,7 @@ export class AuthController {
         logger.info(`User registered successfully: ${username}`);
 
         ctx.status = 201;
-        ctx.body = { message: 'User registered successfully', token } as { message: string, token: string };
+        ctx.body = { successMessage: 'User registered successfully' } as { successMessage: string};
     }
 
     static async login(ctx: Context): Promise<void> {

@@ -11,7 +11,8 @@ export const mutationsLoginMutation = graphql`
 export const mutationsRegisterMutation = graphql`
   mutation mutationsRegisterMutation($username: String!, $password: String!) {
     register(username: $username, password: $password) {
-      token
+      successMessage
+      errorMessage
     }
   }
 `;

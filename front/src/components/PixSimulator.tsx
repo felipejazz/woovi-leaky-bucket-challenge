@@ -20,14 +20,18 @@ const PixSimulator: React.FC = () => {
 
           if (successMessage) {
             alert(`Success! ${successMessage}\nRemaining Tokens: ${tokensLeft}`);
-          } else if (errorMessage) {
-            if (errorMessage === "Invalid PIX FORMAT. only positives values are allowed.") {
-              alert(`ERROR: Invalid PIX key format. Accepted formats:\n- Email: example@mail.com\n- Phone: +5511999999999`);
-            } else if (errorMessage ===  "Too many requests") {
-              alert('ERROR: Too many requests. Come back later');
-            }
-            else {
-              alert(`ERROR: Invalid PIX value. It must be a positive non-zero amount.\nRemaining Tokens: ${tokensLeft}`);
+          } 
+          if (errorMessage) {
+            switch (errorMessage) {
+              case "Invalid PIX FORMAT. only positives values are allowed.":
+                alert(`ERROR: Invalid PIX key format. Accepted formats:\n- Email: example@mail.com\n- Phone: +5511999999999`);
+                break;
+              case "Too many requests":
+                alert('ERROR: Too many requests. Come back later');
+                break;
+              default:
+                alert(`ERROR: Invalid PIX value. It must be a positive non-zero amount.\nRemaining Tokens: ${tokensLeft}`);
+                break;
             }
           }
         }

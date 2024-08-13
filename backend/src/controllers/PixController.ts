@@ -24,8 +24,7 @@ export class PixController {
             if (!bucket) throw new Error('Bucket not found');
 
             tokenToConsume = BucketService.getTokenToConsume(bucket);
-            if (!tokenToConsume) throw new TokenNotFound();
-
+            
             const { key, value } = ctx.request.body as { key: string, value: number };
             
             PixService.makePix({ userId, key, value, token: tokenToConsume });
@@ -39,6 +38,9 @@ export class PixController {
                 BucketService.consumeToken({ bucket, token: tokenToConsume });
                 const tokensLeft = BucketService.getTokenCount(bucket)
                 PixController.handleError(ctx, error, user, tokensLeft)
+            }
+            if (bucket && user && !tokenToConsume) {
+                PixController.handleError(ctx, new NoValidTokens(), user, 0)
             }
         }
     }

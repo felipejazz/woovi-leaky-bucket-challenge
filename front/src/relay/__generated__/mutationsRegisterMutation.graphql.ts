@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<462c6117d50080bff4b6e2aebb650ccf>>
+ * @generated SignedSource<<35d953220704113f1fdcc76c5d0a9960>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -15,7 +15,8 @@ export type mutationsRegisterMutation$variables = {
 };
 export type mutationsRegisterMutation$data = {
   readonly register: {
-    readonly token: string | null | undefined;
+    readonly errorMessage: string | null | undefined;
+    readonly successMessage: string | null | undefined;
   } | null | undefined;
 };
 export type mutationsRegisterMutation = {
@@ -49,7 +50,7 @@ v2 = [
         "variableName": "username"
       }
     ],
-    "concreteType": "AuthPayload",
+    "concreteType": "RegisterPayload",
     "kind": "LinkedField",
     "name": "register",
     "plural": false,
@@ -58,7 +59,14 @@ v2 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "token",
+        "name": "successMessage",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "errorMessage",
         "storageKey": null
       }
     ],
@@ -89,16 +97,16 @@ return {
     "selections": (v2/*: any*/)
   },
   "params": {
-    "cacheID": "b58c3e04503609c39877c39de4a21ea8",
+    "cacheID": "bfdbed866073b3cbb11643229e119687",
     "id": null,
     "metadata": {},
     "name": "mutationsRegisterMutation",
     "operationKind": "mutation",
-    "text": "mutation mutationsRegisterMutation(\n  $username: String!\n  $password: String!\n) {\n  register(username: $username, password: $password) {\n    token\n  }\n}\n"
+    "text": "mutation mutationsRegisterMutation(\n  $username: String!\n  $password: String!\n) {\n  register(username: $username, password: $password) {\n    successMessage\n    errorMessage\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f4867a548f630bbef19f5919d42fe3ce";
+(node as any).hash = "a3ff0528da87dd41a4ea4cf62e5b3439";
 
 export default node;

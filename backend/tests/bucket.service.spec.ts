@@ -41,7 +41,7 @@ describe('BucketService', () => {
     it('should throw NoValidTokens error when trying to check for a token from an empty bucket', () => {
 
         expect(() => {
-            BucketService.checkBucket({ bucket, token: 'fake-token' });
+            BucketService.checkBucket({ bucket});
         }).toThrow(NoValidTokens);
     });
 

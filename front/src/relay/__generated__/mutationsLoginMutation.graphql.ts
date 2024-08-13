@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<c2d40270c906d4ffa7d21e165a5f0b0a>>
+ * @generated SignedSource<<b16ac7eac6ef00ca4b8e674886a4c1cf>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -49,7 +49,7 @@ v2 = [
         "variableName": "username"
       }
     ],
-    "concreteType": "AuthPayload",
+    "concreteType": "LoginPayload",
     "kind": "LinkedField",
     "name": "login",
     "plural": false,

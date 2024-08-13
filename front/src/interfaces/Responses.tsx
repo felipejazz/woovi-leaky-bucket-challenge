@@ -1,12 +1,13 @@
 export interface LoginMutationResponse {
     login: {
-      token: string;
+      token: string | null;
     };
   }
   
 export interface RegisterMutationResponse {
     register: {
-      token: string;
+      errorMessage: string;
+      successMessage: string;
     };
   }
   

@@ -4,13 +4,14 @@ directive @specifiedBy(
   url: String!
 ) on SCALAR
 
-type AuthPayload {
+type LoginPayload {
+  message: String
   token: String
 }
 
 type Mutation {
-  register(username: String!, password: String!): AuthPayload
-  login(username: String!, password: String!): AuthPayload
+  register(username: String!, password: String!): RegisterPayload
+  login(username: String!, password: String!): LoginPayload
   logout: String
   simulatePixQuery(key: String!, value: Float!): PixResponse
 }
@@ -23,6 +24,11 @@ type PixResponse {
 
 type Query {
   user(id: String!): User
+}
+
+type RegisterPayload {
+  successMessage: String
+  errorMessage: String
 }
 
 type User {

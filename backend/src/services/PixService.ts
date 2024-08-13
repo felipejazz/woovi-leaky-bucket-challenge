@@ -23,7 +23,7 @@ export class PixService {
             logger.warn(`Bucket not found for user: ${user.username}`);
             throw new Error('Bucket not found');
         }
-        BucketService.checkBucket({ bucket, token });
+        BucketService.checkBucket({ bucket });
         this.checkPixParameters(key, value);
         logger.info(`Pix query successful for user: ${user.username}, key: ${key}, value: ${value}`);
         return true;

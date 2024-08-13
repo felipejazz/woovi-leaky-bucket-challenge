@@ -9,8 +9,29 @@
 		{
 			"name": "Register User",
 			"request": {
-				"method": "GET",
-				"header": []
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { register(username: $username, password: $password) { message } }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"register"
+					]
+				}
 			},
 			"response": []
 		},
@@ -22,7 +43,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhYzRmZjVjLTE2OGMtNDJmYS1hNjlkLWRlZDQyOTI0NDY0YiIsInVzZXJuYW1lIjoibmV3dXNlciIsImlhdCI6MTcyMzQ4MTE5MiwiZXhwIjoxNzIzNDg0NzkyfQ.CRmSKMA3UZIsOEvkuW3UhLIXjYcDOCQx92wVZVipTg0",
 							"type": "string"
 						}
 					]
@@ -31,7 +52,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { register(username: $username, password: $password) { token } }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
+					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { login(username: $username, password: $password) { token } }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -39,48 +60,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/graphql",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"graphql"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Logout",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExYTJmMjczLTcwYzUtNDlmMi1iNjYzLThjMmYxZTcyNDRkMyIsInVzZXJuYW1lIjoiZmVsaXBlIiwiaWF0IjoxNzIzNDA3NTgxLCJleHAiOjE3MjM0MTExODF9.nALrA60o3iHVTxudNI8g1gLzA0lIK3_gcbKHXkXsxIs",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation { logout }\"\n}\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:3000/auth/logout",
+					"raw": "http://localhost:3000/auth/login",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -88,7 +68,7 @@
 					"port": "3000",
 					"path": [
 						"auth",
-						"logout"
+						"login"
 					]
 				}
 			},
