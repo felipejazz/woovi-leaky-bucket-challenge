@@ -5,10 +5,12 @@ import { AuthService } from '../services/AuthService';
 import { NoValidTokens, TokenNotFound } from '../interfaces/Bucket/Errors';
 import { BucketService } from '../services/BucketService';
 import { InvalidPixKeyError, InvalidPixValueError } from '../interfaces/Pix/Errors';
+import { IAuthUser } from '../interfaces/User/IAuthUser';
 
 const logger = createCustomLogger('pix-controller');
+
 export class PixController {
-    static simulatePixQuery(ctx: Context) {
+    static async simulatePixQuery(ctx: Context) {
         let user;
         let bucket;
         let tokenToConsume;
@@ -16,56 +18,63 @@ export class PixController {
         try {
             const userId = ctx.state.user.id;
             user = AuthService.getUserById(userId);
-            if (!user) {
-                throw new Error('User not found');
-            }
+            if (!user) throw new Error('User not found');
 
             bucket = BucketService.getBucketByUserId(user.id);
-            if (!bucket) {
-                throw new Error('Bucket not found');
-            }
+            if (!bucket) throw new Error('Bucket not found');
 
             tokenToConsume = BucketService.getTokenToConsume(bucket);
-            if (!tokenToConsume) {
-                throw new TokenNotFound();
-            }
+            if (!tokenToConsume) throw new TokenNotFound();
 
             const { key, value } = ctx.request.body as { key: string, value: number };
             
             PixService.makePix({ userId, key, value, token: tokenToConsume });
             ctx.status = 200;
-            const tokensLeft = BucketService.getTokenCount(bucket);
-            ctx.body = { successMessage: 'Pix query success', tokensLeft: tokensLeft};
+            ctx.body = {
+                successMessage: 'Pix query success',
+                tokensLeft: BucketService.getTokenCount(bucket),
+            };
         } catch (error) {
-            if (bucket && tokenToConsume) {
+            if (bucket && user && tokenToConsume) {
                 BucketService.consumeToken({ bucket, token: tokenToConsume });
+                const tokensLeft = BucketService.getTokenCount(bucket)
+                PixController.handleError(ctx, error, user, tokensLeft)
             }
+        }
+    }
 
-            if (error instanceof NoValidTokens) {
-                logger.warn(`Error during Pix query for user: ${user?.username}, error: ${(error as Error).message}`);
-                const tokensLeft = bucket ? BucketService.getTokenCount(bucket) : 0;
+    static handleError(ctx: Context, error: any, user:IAuthUser, tokensLeft: number): void {
+
+        switch (error.constructor) {
+            case NoValidTokens:
+                logger.warn(`Error during Pix query for user: ${user.username}, error: ${error.message}`);
                 ctx.status = 429;
                 ctx.body = { errorMessage: 'Too many requests', tokensLeft };
-            } else if (error instanceof TokenNotFound) {
-                const tokensLeft = bucket ? BucketService.getTokenCount(bucket) : 0;
-                logger.error(`Error during Pix query for user: ${user?.username}, error: Token not found in user bucket`);
+                break;
+
+            case TokenNotFound:
+                logger.error(`Token not found in user bucket: ${user.username}`);
                 ctx.status = 400;
                 ctx.body = { errorMessage: error.message, tokensLeft };
-            } else if (error instanceof InvalidPixKeyError) {
-                const tokensLeft = bucket ? BucketService.getTokenCount(bucket) : 0;
-                logger.error(`Error during Pix query for user: ${user?.username}, error: Invalid PIX key`);
+                break;
+
+            case InvalidPixKeyError:
+                logger.error(`Error during Pix query for user: ${user.username}, error: Invalid PIX key`);
                 ctx.status = 400;
-                ctx.body = { errorMessage: error.message, tokensLeft};
-            } else if (error instanceof InvalidPixValueError) {
-                const tokensLeft = bucket ? BucketService.getTokenCount(bucket) : 0;
-                logger.error(`Error during Pix query for user: ${user?.username}, error: Invalid PIX value`);
+                ctx.body = { errorMessage: error.message, tokensLeft };
+                break;
+
+            case InvalidPixValueError:
+                logger.error(`Error during Pix query for user: ${user.username}, error: Invalid PIX value`);
                 ctx.status = 400;
-                ctx.body = { errorMessage: error.message, tokensLeft,};
-            } else {
+                ctx.body = { errorMessage: error.message, tokensLeft };
+                break;
+
+            default:
                 logger.error(`Unknown error during Pix query for user: ${user?.id}`);
                 ctx.status = 500;
-                ctx.body = { errorMessage: 'An unexpected error occurred'};
-            }
+                ctx.body = { errorMessage: 'An unexpected error occurred' };
+                break;
         }
     }
 }

@@ -18,13 +18,12 @@ export class AuthService {
             logger.info(`Token generated successfully for user: ${user.username}`);
             return token;
         } catch (error) {
-            if (error instanceof Error) {
-                logger.error(`Error generating token for user: ${user.username}, error: ${error.message}`);
-                throw new Error('Failed to generate token');
-            } else {
+            if (!(error instanceof Error)) {
                 logger.error(`Unknown error generating token for user: ${user.username}`);
-                throw new Error('An unknown error occurred during token generation');
+                throw new Error('An unknown error occurred during token generation');    
             }
+            logger.error(`Error generating token for user: ${user.username}, error: ${error.message}`);
+            throw new Error('Failed to generate token');
         }
     }
 
@@ -37,13 +36,13 @@ export class AuthService {
             const decoded = jwt.verify(token, SECRET_KEY) as IDecodedJWT;
             return decoded;
         } catch (error) {
-            if (error instanceof Error) {
-                logger.error(`Invalid token verification attempt, error: ${error.message}`);
-                throw new Error('Invalid token');
-            } else {
+            if (!(error instanceof Error)) {
                 logger.error('Unknown error during token verification');
                 throw new Error('An unknown error occurred during token verification');
+                
             }
+            logger.error(`Invalid token verification attempt, error: ${error.message}`);
+            throw new Error('Invalid token');
         }
     }
 

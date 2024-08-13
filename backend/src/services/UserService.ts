@@ -11,12 +11,12 @@ export class UserService {
             user.token = token;
             logger.info(`Token updated successfully for user: ${user.id}`);
         } catch (error) {
-            if (error instanceof Error) {
-                logger.error(`Error updating token for user: ${user.id}, error: ${error.message}`);
-            } else {
+            if (!(error instanceof Error)) {
                 logger.error(`Unknown error updating token for user: ${user.id}`);
+                throw new Error('Failed to update token');
             }
-            throw new Error('Failed to update token');
+            logger.error(`Error updating token for user: ${user.id}, error: ${error.message}`);
+            throw error
         }
     }
 }

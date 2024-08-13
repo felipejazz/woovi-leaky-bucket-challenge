@@ -59,16 +59,17 @@ export class BucketService {
 
         let bucket = BUCKETS_DB.find(b => b.user.id === user.id);
 
-        if (bucket) {
-            logger.info(`Existing bucket found for user: ${user.id}`);
-            return bucket;
-        } else {
+        if (!bucket) {
             logger.info(`No existing bucket found. Creating new bucket for user: ${user.id}`);
             bucket = new Bucket(user);
             BUCKETS_DB.push(bucket);
             logger.info(`New bucket created for user: ${user.username}`);
             return bucket;
+
         }
+
+        logger.info(`Existing bucket found for user: ${user.id}`);
+        return bucket;
     }
 
     static getBucketByUserId(userId: string): Bucket | null {
