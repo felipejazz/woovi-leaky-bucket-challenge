@@ -27,7 +27,7 @@ export class PixController {
             
             const { key, value } = ctx.request.body as { key: string, value: number };
             
-            PixService.makePix({ userId, key, value, token: tokenToConsume });
+            PixService.makePix({ userId, key, value});
             ctx.status = 200;
             ctx.body = {
                 successMessage: 'Pix query success',

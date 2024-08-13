@@ -1,12 +1,18 @@
 import winston from 'winston';
 
+const { combine, timestamp, printf, colorize } = winston.format;
+
+
+const customFormat = combine(
+    colorize(),
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    printf(({ timestamp, level, message, service }) => {
+        return `${timestamp} [${service}] ${level.toUpperCase()}: ${message}`;
+    })
+);
+
 const logger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        winston.format.printf(({ timestamp, level, message, service }) => {
-            return `${timestamp} [${service}] ${level.toUpperCase()}: ${message}`;
-        })
-    ),
+    format: customFormat,
     transports: [
         new winston.transports.Console()
     ]
