@@ -1,0 +1,33 @@
+"""Exposes a URL that specifies the behaviour of this scalar."""
+directive @specifiedBy(
+  """The URL that specifies the behaviour of this scalar."""
+  url: String!
+) on SCALAR
+
+type AuthPayload {
+  token: String
+}
+
+type Mutation {
+  register(username: String!, password: String!): AuthPayload
+  login(username: String!, password: String!): AuthPayload
+  logout: String
+  simulatePixQuery(key: String!, value: Float!): PixResponse
+}
+
+type PixResponse {
+  successMessage: String
+  tokensLeft: Int
+  errorMessage: String
+}
+
+type Query {
+  user(id: String!): User
+}
+
+type User {
+  id: String!
+  username: String!
+  token: String!
+}
+

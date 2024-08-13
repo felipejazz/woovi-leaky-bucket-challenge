@@ -9,7 +9,16 @@ import { typeDefs } from './schema';
 
 const app = new Koa();
 const router = new Router();
-
+app.use(async (ctx, next) => {
+  ctx.set('Access-Control-Allow-Origin', '*'); 
+  ctx.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+  ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (ctx.method === 'OPTIONS') {
+      ctx.status = 204; 
+  } else {
+      await next();
+  }
+});
 const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
@@ -50,5 +59,5 @@ app.use(bodyParser());
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(3000, () => {
-  console.log('🚀 Server running on http://localhost:3000/graphql');
+  console.log('Server running on http://localhost:3000/graphql');
 });

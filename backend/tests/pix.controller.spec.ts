@@ -55,7 +55,7 @@ describe('PixController.simulatePixQuery', () => {
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
-            message: 'Pix query success',
+            successMessage: 'Pix query success',
             tokensLeft: 10,
         });
 
@@ -75,7 +75,7 @@ describe('PixController.simulatePixQuery', () => {
 
         expect(response.status).toBe(429);
         expect(response.body).toEqual({
-            message: 'Too many requests',
+            errorMessage: 'Too many requests',
             tokensLeft: 0,
         });
 
@@ -90,7 +90,7 @@ describe('PixController.simulatePixQuery', () => {
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({
-            message: 'Invalid PIX KEY FORMAT. Allowed format: email@example.om or telephone \"+5511999999999\"',
+            errorMessage: 'Invalid PIX KEY FORMAT. Allowed format: email@example.om or telephone \"+5511999999999\"',
             tokensLeft: 9
         });
 
@@ -106,7 +106,7 @@ describe('PixController.simulatePixQuery', () => {
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({
-            message: 'Invalid PIX VALUE. only positives values are allowed.',
+            errorMessage: 'Invalid PIX VALUE. only positives values are allowed.',
             tokensLeft: 9
         });
 
@@ -122,7 +122,7 @@ describe('PixController.simulatePixQuery', () => {
 
         expect(response.status).toBe(400);
         expect(response.body).toEqual({
-            message: 'Invalid PIX VALUE. only positives values are allowed.',
+            errorMessage: 'Invalid PIX VALUE. only positives values are allowed.',
             tokensLeft: 9
         });
 

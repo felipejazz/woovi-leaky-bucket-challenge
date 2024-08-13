@@ -88,9 +88,9 @@ describe('BucketService', () => {
 
         jest.advanceTimersByTime(3600000);
         expect(bucket.getTokenCount()).toBe(1);
-
+        jest.advanceTimersByTime(3600000);
+        expect(bucket.getTokenCount()).toBe(2);
         BucketService.stopTokenAddition(bucket);
-        expect(clearInterval).toHaveBeenCalledTimes(1);
     });
 
     it('should stop token addition', () => {
@@ -99,7 +99,10 @@ describe('BucketService', () => {
         jest.spyOn(global, 'clearInterval');
 
         BucketService.startTokenAddition(bucket);
+        jest.advanceTimersByTime(3600000);
+        expect(bucket.getTokenCount()).toBe(1);
         BucketService.stopTokenAddition(bucket);
-        expect(clearInterval).toHaveBeenCalledTimes(1);
+        jest.advanceTimersByTime(2 * 3600000);
+        expect(bucket.getTokenCount()).toBe(1);
     });
 });

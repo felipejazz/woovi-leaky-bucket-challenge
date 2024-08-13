@@ -12,8 +12,9 @@ export const typeDefs = gql`
   }
 
   type PixResponse {
-    message: String!
+    successMessage: String
     tokensLeft: Int
+    errorMessage: String 
   }
 
   type Query {
