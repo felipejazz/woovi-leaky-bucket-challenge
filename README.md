@@ -27,3 +27,5 @@ To build and run the project, follow these steps:
     Frontend: Available at http://localhost:3001
 
     Backend (GraphQL Server): Available at http://localhost:3000
+    
+    The backend Postaman Collection is located in woovi-challenge.postman_collection.json

@@ -12,7 +12,6 @@ const App: React.FC = () => {
     <Router>
       <div>
         <Navbar />
-        {/* Envolva todo o Routes com AuthComponent */}
         <AuthComponent>
           <Routes>
             <Route path="/login" element={<AuthForm />} />
