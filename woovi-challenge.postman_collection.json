@@ -1,0 +1,136 @@
+{
+	"info": {
+		"_postman_id": "b756fe78-cfdc-4b81-b880-f580a189c97c",
+		"name": "Woovi Challenge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31391067"
+	},
+	"item": [
+		{
+			"name": "Register User",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Login User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { register(username: $username, password: $password) { token } }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExYTJmMjczLTcwYzUtNDlmMi1iNjYzLThjMmYxZTcyNDRkMyIsInVzZXJuYW1lIjoiZmVsaXBlIiwiaWF0IjoxNzIzNDA3NTgxLCJleHAiOjE3MjM0MTExODF9.nALrA60o3iHVTxudNI8g1gLzA0lIK3_gcbKHXkXsxIs",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation { logout }\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/auth/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Make PIX",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZkNzVkNWIzLWNiZWMtNGFkOS1hNGM5LTlhYzk2YTY4M2FlMSIsInVzZXJuYW1lIjoibmV3dXNlciIsImlhdCI6MTcyMzUxMTMxNiwiZXhwIjoxNzIzNTE0OTE2fQ.XT3UbQTtLyBnu9rN8WpA3CMLTpXr4GNEpxnzSx9JqwM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation($key: String!, $value: Float!) { simulatePixQuery(key: $key, value: $value) { successMessage errorMessage tokensLeft } }\",\n  \"variables\": {\n    \"key\": \"email@example.com\",\n    \"value\": 100.50\n  }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/graphql",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"graphql"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
