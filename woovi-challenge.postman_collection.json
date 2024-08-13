@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { register(username: $username, password: $password) { message } }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
+					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { register(username: $username, password: $password) { errorMessage successMessage} }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -82,7 +82,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZkNzVkNWIzLWNiZWMtNGFkOS1hNGM5LTlhYzk2YTY4M2FlMSIsInVzZXJuYW1lIjoibmV3dXNlciIsImlhdCI6MTcyMzUxMTMxNiwiZXhwIjoxNzIzNTE0OTE2fQ.XT3UbQTtLyBnu9rN8WpA3CMLTpXr4GNEpxnzSx9JqwM",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlkZWU3NmNiLTExMGYtNDYyYi04OWY4LWZmMzUwYzUyMGNmNSIsInVzZXJuYW1lIjoibmV3dXNlciIsImlhdCI6MTcyMzU3NDY1OCwiZXhwIjoxNzIzNTc4MjU4fQ.fZvCtX3oJi8Dh-BpinuqOKerN-_HXMxaqOp0CDcc4os",
 							"type": "string"
 						}
 					]
@@ -91,7 +91,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation($key: String!, $value: Float!) { simulatePixQuery(key: $key, value: $value) { successMessage errorMessage tokensLeft } }\",\n  \"variables\": {\n    \"key\": \"email@example.com\",\n    \"value\": 100.50\n  }\n}\n",
+					"raw": "{\n  \"query\": \"mutation($key: String!, $value: Float!) { simulatePixQuery(key: $key, value: $value) { successMessage errorMessage tokensLeft } }\",\n  \"variables\": {\n    \"key\": \"email@example.com\",\n    \"value\": -100.50\n  }\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"

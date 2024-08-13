@@ -37,43 +37,47 @@ export class PixController {
             if (bucket && user && tokenToConsume) {
                 BucketService.consumeToken({ bucket, token: tokenToConsume });
                 const tokensLeft = BucketService.getTokenCount(bucket)
-                PixController.handleError(ctx, error, user, tokensLeft)
+                PixController.handleError(ctx, error, user.id, tokensLeft)
+                return
             }
             if (bucket && user && !tokenToConsume) {
-                PixController.handleError(ctx, new NoValidTokens(), user, 0)
+                PixController.handleError(ctx, new NoValidTokens(), user.id, 0)
+                return
             }
+            PixController.handleError(ctx, new NoValidTokens(), ctx.user.id, 0)
+
         }
     }
 
-    static handleError(ctx: Context, error: any, user:IAuthUser, tokensLeft: number): void {
+    static handleError(ctx: Context, error: any, userId:string| IAuthUser, tokensLeft: number): void {
 
         switch (error.constructor) {
             case NoValidTokens:
-                logger.warn(`Error during Pix query for user: ${user.username}, error: ${error.message}`);
+                logger.warn(`Error during Pix query for user: ${userId}, error: ${error.message}`);
                 ctx.status = 429;
                 ctx.body = { errorMessage: 'Too many requests', tokensLeft };
                 break;
 
             case TokenNotFound:
-                logger.error(`Token not found in user bucket: ${user.username}`);
+                logger.error(`Token not found in user bucket: ${userId}`);
                 ctx.status = 400;
                 ctx.body = { errorMessage: error.message, tokensLeft };
                 break;
 
             case InvalidPixKeyError:
-                logger.error(`Error during Pix query for user: ${user.username}, error: Invalid PIX key`);
+                logger.error(`Error during Pix query for user: ${userId}, error: Invalid PIX key`);
                 ctx.status = 400;
                 ctx.body = { errorMessage: error.message, tokensLeft };
                 break;
 
             case InvalidPixValueError:
-                logger.error(`Error during Pix query for user: ${user.username}, error: Invalid PIX value`);
+                logger.error(`Error during Pix query for user: ${userId}, error: Invalid PIX value`);
                 ctx.status = 400;
                 ctx.body = { errorMessage: error.message, tokensLeft };
                 break;
 
             default:
-                logger.error(`Unknown error during Pix query for user: ${user?.id}`);
+                logger.error(`Unknown error during Pix query for user: ${userId}`);
                 ctx.status = 500;
                 ctx.body = { errorMessage: 'An unexpected error occurred' };
                 break;
