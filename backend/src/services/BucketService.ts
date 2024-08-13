@@ -94,7 +94,7 @@ export class BucketService {
     static getTokenToConsume( bucket: Bucket): string {
         if (bucket.tokens.length === 0) {
             logger.warn(`Cannot get token for user: ${bucket.user.id}, bucket is empty`);
-            throw new Error('Cannot get token for user.bucket is empty')
+            throw new NoValidTokens()
         }
         const token = bucket.tokens[0]
         logger.info(`Token to consume succefully retrieved for user ${bucket.user.id}`);
