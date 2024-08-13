@@ -5,11 +5,16 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: backend-server
+    container_name: woovi-challenge-backend-server
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
-    command: npm run start
+  frontend-server:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: woovi-challenge-frontend-server
+    ports:
+      - "3001:3001"
+
+
 
