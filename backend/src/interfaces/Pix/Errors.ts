@@ -1,3 +1,5 @@
+import { NoValidTokens, TokenNotFound } from "../Bucket/Errors";
+
 export class InvalidPixKeyError extends Error {
     constructor(key: string) {
         super(`Invalid Pix key format: ${key}. It must be a valid email or phone number.`);
@@ -13,3 +15,10 @@ export class InvalidPixValueError extends Error {
         this.message= 'Invalid PIX VALUE. only positives values are allowed.';
     }
 }
+
+export type PixError = 
+    | NoValidTokens
+    | TokenNotFound
+    | InvalidPixKeyError
+    | InvalidPixValueError
+    | Error;

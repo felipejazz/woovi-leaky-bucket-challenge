@@ -4,7 +4,7 @@ import createCustomLogger from '../utils/logger';
 import { AuthService } from '../services/AuthService';
 import { NoValidTokens, TokenNotFound } from '../interfaces/Bucket/Errors';
 import { BucketService } from '../services/BucketService';
-import { InvalidPixKeyError, InvalidPixValueError } from '../interfaces/Pix/Errors';
+import { InvalidPixKeyError, InvalidPixValueError, PixError } from '../interfaces/Pix/Errors';
 import { IAuthUser } from '../interfaces/User/IAuthUser';
 
 const logger = createCustomLogger('pix-controller');
@@ -33,11 +33,12 @@ export class PixController {
                 successMessage: 'Pix query success',
                 tokensLeft: BucketService.getTokenCount(bucket),
             };
-        } catch (error) {
+        } catch (error ) {
+            const typedError = error as PixError
             if (bucket && user && tokenToConsume) {
                 BucketService.consumeToken({ bucket, token: tokenToConsume });
                 const tokensLeft = BucketService.getTokenCount(bucket)
-                PixController.handleError(ctx, error, user.id, tokensLeft)
+                PixController.handleError(ctx, typedError, user.id, tokensLeft)
                 return
             }
             if (bucket && user && !tokenToConsume) {
@@ -49,7 +50,7 @@ export class PixController {
         }
     }
 
-    static handleError(ctx: Context, error: any, userId:string| IAuthUser, tokensLeft: number): void {
+    static handleError(ctx: Context, error: Error, userId:string| IAuthUser, tokensLeft: number): void {
 
         switch (error.constructor) {
             case NoValidTokens:

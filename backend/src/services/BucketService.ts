@@ -3,7 +3,7 @@ import { AuthService } from "./AuthService";
 import { NoValidTokens, TokenNotFound } from "../interfaces/Bucket/Errors";
 import createCustomLogger from "../utils/logger";
 import { IAuthUser } from "../interfaces/User/IAuthUser";
-import { AuthUser } from "../models/AuthUser";
+
 
 const MAX_TOKENS = 10;
 const TOKENS_INTERVAL = 3600000;

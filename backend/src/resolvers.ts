@@ -1,10 +1,4 @@
-import { AuthService } from './services/AuthService';
-import { PixService } from './services/PixService';
-import { BucketService } from './services/BucketService';
 import { Context } from 'koa';
-import { User } from './models/User';
-import { AuthUser } from './models/AuthUser';
-import { IAuthUser } from './interfaces/User/IAuthUser';
 import { AuthController } from './controllers/AuthController';
 import { PixController } from './controllers/PixController';
 interface RegisterArgs {

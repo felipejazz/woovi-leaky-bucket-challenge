@@ -15,7 +15,7 @@ export class AuthController {
         const { username, password } = ctx.request.body as IAuthRequestBody;
 
         logger.info(`Attempting to register user: ${username}`);
-        let user = AuthService.getUserByName(username);
+        const user = AuthService.getUserByName(username);
 
         if (user) {
             logger.warn(`Registration failed: Username already exists - ${username}`);

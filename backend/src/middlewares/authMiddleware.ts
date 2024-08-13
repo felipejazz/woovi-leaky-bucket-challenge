@@ -14,7 +14,8 @@ export const authMiddleware = async(ctx: Context, next: Next) => {
     try {
         ctx.state.user = jwt.verify(token, process.env.SECRET_KEY || 'woovi-challenge-secret')
         await next()
-    } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
         ctx.status = 401;
         ctx.body = { message: 'Unauthorized'}
     }

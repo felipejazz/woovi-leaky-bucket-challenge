@@ -1,6 +1,5 @@
 
 import { IAuthUser } from "../interfaces/User/IAuthUser";
-import {IUser} from "../interfaces/User/IUser";
 import { Bucket } from "./Bucket";
 
 export class AuthUser implements IAuthUser {

@@ -1,5 +1,4 @@
 import { IBucket } from "../interfaces/Bucket/IBucket";
-import { IDecodedJWT } from "../interfaces/IDecodedJWT";
 import { AuthUser } from "./AuthUser";
 
 export class Bucket implements IBucket {
