@@ -1,0 +1,29 @@
+### Woovi Leaky Bucket Challenge
+
+This project is a full-stack application that utilizes Docker and Docker Compose for easy setup and deployment. The frontend is built with React and Relay, and the backend is powered by Node.js with a GraphQL API.
+
+#### Dependencies
+
+Ensure you have the following installed on your machine:
+
+- **Docker**: 27.1.1
+- **Docker Compose**: 2.29.1
+- **Node.js**: 18.18.0
+- **npm**: 9.8.1
+
+## Setup and Running the Project
+
+To build and run the project, follow these steps:
+
+1. **Navigate to the Project Root**: Ensure you are in the root directory of the project where the `docker-compose.yml` file is located.
+
+2. **Build and Start the Containers**:
+
+   ```bash
+   docker-compose up --build
+
+3. **Access the Application**:
+
+    Frontend: Available at http://localhost:3001
+
+    Backend (GraphQL Server): Available at http://localhost:3000
