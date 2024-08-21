@@ -1,22 +1,17 @@
-import { IBucket } from "../interfaces/Bucket/IBucket";
-import { AuthUser } from "./AuthUser";
 
-export class Bucket implements IBucket {
+import { AuthUser } from "./AuthUser";
+import { Document } from "mongoose";
+
+export class Bucket {
     tokens: Array<string>;
     user: AuthUser;
     intervalId: NodeJS.Timeout | null;
-    serviceStarted : boolean | null
+    serviceStarted : boolean 
 
     constructor(user: AuthUser) {
         this.tokens = [];
         this.user = user
         this.intervalId = null;
-        this.serviceStarted = null
+        this.serviceStarted = false
     }
-
-    getTokenCount(): number {
-        return this.tokens.length;
-    }
-
-
 }

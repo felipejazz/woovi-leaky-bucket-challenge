@@ -3,7 +3,7 @@
   export const typeDefs = gql`
     type User {
       id: String!
-      username: String!
+      userName: String!
       token: String!
     }
 
@@ -27,7 +27,7 @@
       user(id: String!): User
     }
     type Mutation {
-      register(username: String!, password: String!): RegisterPayload
+      register(userName: String!, password: String!): RegisterPayload
       login(username: String!, password: String!): LoginPayload
       logout: String
       simulatePixQuery(key: String!, value: Float!): PixResponse

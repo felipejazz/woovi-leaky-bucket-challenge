@@ -2,12 +2,12 @@ import { Context } from 'koa';
 import { AuthController } from './controllers/AuthController';
 import { PixController } from './controllers/PixController';
 interface RegisterArgs {
-  username: string;
+  userName: string;
   password: string;
 }
 
 interface LoginArgs {
-  username: string;
+  userName: string;
   password: string;
 }
 
@@ -25,19 +25,19 @@ export const resolvers = {
   Mutation: {
     register: async (
       _: unknown,
-      { username, password }: RegisterArgs,
+      { userName, password }: RegisterArgs,
       { ctx }: GraphQLContext
     ): Promise<{ errorMessage: string } | { successMessage: string }> => {
-      ctx.request.body = { username, password };
+      ctx.request.body = { userName, password };
       await AuthController.register(ctx);
       return ctx.body as { errorMessage: string } | { successMessage: string };
     },
     login: async (
       _: unknown,
-      { username, password }: LoginArgs,
+      { userName, password }: LoginArgs,
       { ctx }: GraphQLContext
     ): Promise<{ token: string } | { message: string }> => {
-      ctx.request.body = { username, password };
+      ctx.request.body = { userName, password };
       await AuthController.login(ctx);
       return ctx.body as { token: string; message: string };
     },

@@ -1,10 +1,12 @@
 import { Bucket } from '../../models/Bucket';
 
-export interface IAuthUser {
-    id: string;
-    username: string;
+export interface IAuthUser{
+    
+    userName: string;
     password: string;
     token: string ;
-    bucket: Bucket;
+    bucket?: Bucket;
+    revokedTokens?: string[];
+    
 
 }

@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+  mongo:
+    build: .
+    container_name: mongo-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
+
+volumes:
+  mongo-data:
+
+networks:
+  backend-network:
+

@@ -1,0 +1,14 @@
+version: '3'
+services:
+  redis:
+    build: .
+    container_name: woovi-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
+

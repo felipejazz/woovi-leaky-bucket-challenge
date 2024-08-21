@@ -4,18 +4,16 @@ import { Bucket } from "./Bucket";
 
 export class AuthUser implements IAuthUser {
     
-    id: string;
-    username: string;
+    userName: string;
     password: string;
-    bucket: Bucket;
+    bucket?: Bucket;
     token: string
+    revokedTokens?: string[]
 
-    constructor({id, username, password, token} : {id: string, username: string, password: string, token: string}) {
-        this.id = id;
-        this.username = username;
+    constructor({userName, password, token} : {userName: string, password: string, token: string}) {
+        this.userName = userName;
         this.password = password;
         this.token = token;
-        this.bucket = new Bucket(this)
     }
 
 

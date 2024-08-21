@@ -1,131 +1,223 @@
 import request from 'supertest';
 import Koa from 'koa';
-import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
+import Router from 'koa-router';
+import mongoose from 'mongoose';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import RedisService from '../src/services/RedisService';
 import { PixController } from '../src/controllers/PixController';
-import { BucketService } from '../src/services/BucketService';
+import { AuthController } from '../src/controllers/AuthController';
+import { PixService } from '../src/services/PixService';
+import { UserModel } from '../src/models/mongoose/UserModel';
+import PixWorker from '../src/workers/PixWorker';
+import { authMiddleware } from '../src/middlewares/authMiddleware';
 import { AuthService } from '../src/services/AuthService';
-import { NoValidTokens } from '../src/interfaces/Bucket/Errors';
+import { InvalidPixKeyError, InvalidPixValueError } from '../src/interfaces/Pix/Errors';
+import { BucketService } from '../src/services/BucketService';
 
-jest.mock('../src/services/BucketService');
-jest.mock('../src/services/AuthService');
-
-describe('PixController.simulatePixQuery', () => {
+describe('Auth and PixController Integration', () => {
     let app: Koa;
     let router: Router;
+    let mongoServer: MongoMemoryReplSet;
+    let pixWorker: PixWorker;
+    let token: string;
 
-    const user = {
-        id: 'user-id',
-        username: 'testuser',
-        token: 'valid-token'
-    };
 
-    beforeEach(() => {
+    beforeAll(async () => {
+        mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+        const uri = mongoServer.getUri();
+        await mongoose.connect(uri);
+
+        pixWorker = new PixWorker();
+
         app = new Koa();
         router = new Router();
 
-        (AuthService.getUserById as jest.Mock).mockReturnValue(user);
-
-        (BucketService.getBucketByUserId as jest.Mock).mockReturnValue({
-            user: user,
-            tokens: ['valid-token'],
-            serviceStarted: true,
-        });
-
-        (BucketService.getTokenCount as jest.Mock).mockReturnValue(10);
-        (BucketService.checkBucket as jest.Mock).mockImplementation(() => true);
-        (BucketService.getTokenToConsume as jest.Mock).mockReturnValue('valid-token');
-        (BucketService.consumeToken as jest.Mock).mockImplementation(() => true);
-
-        router.post('/pix/query', async (ctx, next) => {
-            ctx.state.user = user;
-            await next();
-        }, PixController.simulatePixQuery);
+        router.post('/auth/register', AuthController.register);
+        router.post('/auth/login', AuthController.login);
+        router.post('/pix/query', authMiddleware, PixController.simulatePixQuery);
 
         app.use(bodyParser());
         app.use(router.routes()).use(router.allowedMethods());
-
-        jest.clearAllMocks();
     });
 
-    it('should successfully simulate a Pix query when bucket has maximum tokens', async () => {
-        const response = await request(app.callback())
+    beforeEach(async () => {
+        await UserModel.deleteMany({});
+    });
+
+    afterAll(async () => {
+        await mongoose.disconnect();
+        await mongoServer.stop();
+        await PixService.closeQueues();
+        await RedisService.teardown(); 
+        await pixWorker.closeWorker();
+    });
+
+    afterEach(async () => {
+        await UserModel.deleteMany({});
+        await RedisService.redis.flushall();
+    });
+
+    it('should register, login, and successfully simulate a Pix query', async () => {
+        const username = 'testeuserfull';
+        const password = 'testpassword';
+    
+        let response = await request(app.callback())
+            .post('/auth/register')
+            .send({ userName: username, password: password });
+
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({
+            successMessage: 'User registered successfully',
+        });
+
+        response = await request(app.callback())
+            .post('/auth/login')
+            .send({ userName: username, password: password });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('token');
+        token = response.body.token;
+
+
+        response = await request(app.callback())
             .post('/pix/query')
+            .set('Authorization', `Bearer ${token}`)
             .send({ key: 'validemail@example.com', value: 100 });
 
         expect(response.status).toBe(200);
         expect(response.body).toEqual({
             successMessage: 'Pix query success',
             tokensLeft: 10,
+            newToken : token,
         });
-
-        expect(BucketService.getTokenCount).toHaveBeenCalled();
-        expect(BucketService.consumeToken).not.toHaveBeenCalled();
     });
 
-    it('should return 429 if all tokens are consumed', async () => {
-        (BucketService.getTokenCount as jest.Mock).mockReturnValue(0);
-        (BucketService.checkBucket as jest.Mock).mockImplementation(() => {
-            throw new NoValidTokens();
+    it('should fail to simulate Pix query due to lack of tokens', async () => {
+        const username = 'testeuserlack';
+        const password = 'testpassword';
+        let response = await request(app.callback())
+            .post('/auth/register')
+            .send({ userName: username, password: password });
+
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({
+            successMessage: 'User registered successfully',
         });
 
-        const response = await request(app.callback())
+        response = await request(app.callback())
+            .post('/auth/login')
+            .send({ userName: username, password: password });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('token');
+        token = response.body.token;
+        let requestToken = token;
+        for (let i = 1; i < 11; i++) {
+            const innerResponse = await request(app.callback())
+                .post('/pix/query')
+                .set('Authorization', `Bearer ${requestToken}`)
+                .send({ key: 'validemail@example.com', value: -100 });
+            expect(innerResponse.status).toBe(400)
+            expect(innerResponse.body.tokensLeft).toBe(10-i)
+            requestToken = innerResponse.body.newUserToken
+        }
+
+        response = await request(app.callback())
             .post('/pix/query')
+            .set('Authorization', `Bearer ${requestToken}`)
             .send({ key: 'validemail@example.com', value: 100 });
 
         expect(response.status).toBe(429);
         expect(response.body).toEqual({
             errorMessage: 'Too many requests',
-            tokensLeft: 0,
         });
-
-        expect(BucketService.consumeToken).toHaveBeenCalled();
     });
 
-    it('should return 400 for invalid Pix key format', async () => {
-        (BucketService.getTokenCount as jest.Mock).mockReturnValue(9);
-        const response = await request(app.callback())
+    it('should fail to simulate Pix query due to invalid key', async () => {
+        const username = 'testeuserkey';
+        const password = 'testpassword';
+
+        let response = await request(app.callback())
+            .post('/auth/register')
+            .send({ userName: username, password: password });
+
+        expect(response.status).toBe(201);
+        expect(response.body).toEqual({
+            successMessage: 'User registered successfully',
+        });
+
+        response = await request(app.callback())
+            .post('/auth/login')
+            .send({ userName: username, password: password });
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('token');
+        token = response.body.token;
+        const userBucketResult = await BucketService.getBucket(username)
+        if(!userBucketResult || !userBucketResult.data){
+            throw new Error('Failed retrieving bucket during test')
+        }
+        const userBucket = userBucketResult.data
+        const nextToken = userBucket.tokens[1]
+        expect(nextToken).not.toEqual(token)
+
+        response = await request(app.callback())
             .post('/pix/query')
+            .set('Authorization', `Bearer ${token}`)
             .send({ key: 'invalid-key', value: 100 });
-        expect(BucketService.consumeToken).toHaveBeenCalledTimes(1);
+        const expectedError = new InvalidPixKeyError()
+
+
         expect(response.status).toBe(400);
         expect(response.body).toEqual({
-            errorMessage: 'Invalid PIX KEY FORMAT. Allowed format: email@example.om or telephone \"+5511999999999\"',
-            tokensLeft: 9
+            errorMessage: expectedError.message,
+            tokensLeft: 9,
+            newUserToken: nextToken
         });
-
-        expect(BucketService.consumeToken).toHaveBeenCalled();
     });
 
-    it('should return 400 for invalid transfer value', async () => {
-        (BucketService.getTokenCount as jest.Mock).mockReturnValue(9);
+    it('should fail to simulate Pix query due to invalid value', async () => {
+        const username = 'testeuservalue';
+        const password = 'testpassword';
+        let response = await request(app.callback())
+            .post('/auth/register')
+            .send({ userName: username, password: password });
 
-        const response = await request(app.callback())
-            .post('/pix/query')
-            .send({ key: 'validemail@example.com', value: -10 });
-
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(201);
         expect(response.body).toEqual({
-            errorMessage: 'Invalid PIX VALUE. only positives values are allowed.',
-            tokensLeft: 9
+            successMessage: 'User registered successfully',
         });
 
-        expect(BucketService.consumeToken).toHaveBeenCalled();
-    });
+        response = await request(app.callback())
+            .post('/auth/login')
+            .send({ userName: username, password: password });
 
-    it('should return 400 for invalid transfer value with non-numeric value', async () => {
-        (BucketService.getTokenCount as jest.Mock).mockReturnValue(9);
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('token');
+        token = response.body.token;
 
-        const response = await request(app.callback())
+        const userBucketResult = await BucketService.getBucket(username)
+        if(!userBucketResult || !userBucketResult.data){
+            throw new Error('Failed retrieving bucket during test')
+        }
+        const userBucket = userBucketResult.data
+        const nextToken = userBucket.tokens[1]
+        expect(nextToken).not.toEqual(token)
+
+        response = await request(app.callback())
             .post('/pix/query')
-            .send({ key: 'validemail@example.com', value: 'invalid' });
+            .set('Authorization', `Bearer ${token}`)
+            .send({ key: 'validemail@example.com', value: -100 });
+        
 
+        
+        const expectedError = new InvalidPixValueError()
         expect(response.status).toBe(400);
         expect(response.body).toEqual({
-            errorMessage: 'Invalid PIX VALUE. only positives values are allowed.',
-            tokensLeft: 9
+            errorMessage: expectedError.message,
+            tokensLeft: 9,
+            newUserToken: nextToken
         });
-
-        expect(BucketService.consumeToken).toHaveBeenCalled();
     });
 });

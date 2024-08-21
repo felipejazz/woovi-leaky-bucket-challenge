@@ -1,9 +1,8 @@
-import { User } from "../../models/User";
+import { Document, Types } from "mongoose";
+import { IAuthUser } from "../User/IAuthUser";
 
-export interface IBucket {
-    user: User;
-    tokens: Array<string>
-    intervalId: NodeJS.Timeout | null;
-    serviceStarted : boolean | null;
-    getTokenCount(): number;
+export interface IBucket{
+    user: IAuthUser;
+    token: Array<string>;
+    lastTimeStamp: Date;
 }
