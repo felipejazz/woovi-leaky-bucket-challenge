@@ -20,7 +20,8 @@
     type PixResponse {
       successMessage: String
       tokensLeft: Int
-      errorMessage: String 
+      errorMessage: String
+      newUserToken: String
     }
 
     type Query {
@@ -28,7 +29,7 @@
     }
     type Mutation {
       register(userName: String!, password: String!): RegisterPayload
-      login(username: String!, password: String!): LoginPayload
+      login(userName: String!, password: String!): LoginPayload
       logout: String
       simulatePixQuery(key: String!, value: Float!): PixResponse
     }

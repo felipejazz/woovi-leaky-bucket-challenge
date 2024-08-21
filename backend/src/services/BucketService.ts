@@ -122,7 +122,7 @@ export class BucketService {
         if (!userBucket) {
             return new Result<IDocumentBucket>({ success: false, data: null, error: new BucketUnexpectedError('Error unpacking bucket data') });
         }
-
+        userBucket.tokens = []
         const tokensToAdd = MAX_TOKENS - userBucket.tokens.length;
         if (tokensToAdd <= 0) {
             logger.info(`Bucket already full for user: ${user.userName}`);

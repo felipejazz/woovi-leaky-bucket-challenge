@@ -17,6 +17,7 @@ export const authMiddleware = async (ctx: Context, next: Next) => {
     }
 
     const token = authHeader.split(' ')[1];
+    
 
     try {
         const decodedToken = jwt.verify(token, process.env.SECRET_KEY || 'woovi-challenge-secret') as IDecodedJWT;
@@ -26,15 +27,22 @@ export const authMiddleware = async (ctx: Context, next: Next) => {
             ctx.body = { message: 'Invalid token' };
             return;
         }
-
+        logger.info(`Token verificado para o usuário: ${decodedToken.user}`);
         const userResult = await AuthService.getUser(decodedToken.user);
         if (!userResult.success || !userResult.data) {
             ctx.status = 401;
             ctx.body = { message: 'Unauthorized' };
             return;
         }
+        
         const user = userResult.data;
+        const tokenRevokedResult = await AuthService.verifyToken({user: user, token: token})
 
+        if (tokenRevokedResult.success ) {
+            ctx.status = 401;
+            ctx.body = { message: 'Token Revoked' };
+            return;
+        }
         if (user.noValidTokens){
 
             ctx.status = 429;

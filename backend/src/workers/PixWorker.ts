@@ -7,15 +7,23 @@ import { InvalidPixKeyError, InvalidPixValueError } from '../interfaces/Pix/Erro
 import { AuthService } from '../services/AuthService';
 
 class PixWorker {
-    private worker: Worker;
+    private worker!: Worker;
     private logger = createCustomLogger('pix-worker');
 
     constructor() {
-        this.worker = new Worker('pixQueue', this.processJob.bind(this), {
-            connection: RedisService.redis,
-        });
     }
 
+    public async initialize() {
+        await this.initializeWorker();
+    }
+
+    private async initializeWorker() {
+        await RedisService.initialize(); 
+        this.worker = new Worker('pixQueue', this.processJob.bind(this), {
+            connection: RedisService.getInstance().redis,
+        });
+        this.logger.info('PixWorker initialized successfully.');
+    }
     private async processJob(job: Job): Promise<void> {
         const { userName, key, value } = job.data;
         const lockKey = `lock:pix:${userName}`;
@@ -32,32 +40,30 @@ class PixWorker {
                 return;
             }
             this.logger.warn(`Lock acquired for ${userName}.`);
-            const userResponse = await AuthService.getUser(userName)
+            const userResponse = await AuthService.getUser(userName);
             if (!userResponse.success) {
                 const jobState = await job.getState();
                 this.logger.info(`State of job ${job.id}: ${jobState}`);
                 this.logger.error(`Pix processing failed for user: ${userName}.`);
-                throw userResponse.error
+                throw userResponse.error;
             }
-            const user = userResponse.data 
+            const user = userResponse.data;
     
-            if (user?.noValidTokens){
+            if (user?.noValidTokens) {
                 const jobState = await job.getState();
                 this.logger.info(`State of job ${job.id}: ${jobState}`);
                 this.logger.error(`No valid tokens. Pix processing failed for user: ${userName}.`);
-                throw userResponse.error
-
+                throw userResponse.error;
             }
 
-            const result = PixService.checkPixParameters(key, value );
+            const result = PixService.checkPixParameters(key, value);
 
             if (!result.success) {
                 const jobState = await job.getState();
                 this.logger.info(`State of job ${job.id}: ${jobState}`);
                 this.logger.error(`Pix processing failed for user: ${userName}.`);
-                throw result.error
+                throw result.error;
             }
-
         } catch (error) {
             this.logger.error(`Error processing job ${job.id}: ${String(error)}`);
 
@@ -68,7 +74,7 @@ class PixWorker {
                     error instanceof InvalidPixValueError
                 ) {
                     this.logger.error(`Non-retriable error encountered: ${error.message}`);
-                    throw error; 
+                    throw error;
                 }
             } else {
                 this.logger.error(`An unknown error occurred: ${String(error)}`);
@@ -82,8 +88,10 @@ class PixWorker {
     }
 
     public async closeWorker(): Promise<void> {
-        await this.worker.close();
-        this.logger.info('Worker closed successfully');
+        if (this.worker) {
+            await this.worker.close();
+            this.logger.info('Worker closed successfully');
+        }
     }
 }
 

@@ -6,58 +6,78 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { authMiddleware } from './middlewares/authMiddleware';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
+import { AuthService } from './services/AuthService';
+import RedisService from './services/RedisService';
+import PixWorker from './workers/PixWorker';
 
-const app = new Koa();
-const router = new Router();
-app.use(async (ctx, next) => {
-  ctx.set('Access-Control-Allow-Origin', '*'); 
-  ctx.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
-  ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (ctx.method === 'OPTIONS') {
-      ctx.status = 204; 
-  } else {
-      await next();
-  }
-});
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
-});
+async function startServer() {
+    const app = new Koa();
+    const router = new Router();
+    await RedisService.initialize();
+    
+    const mongoConnectionResult = await AuthService.connectMongo();
+    if (!mongoConnectionResult.success) {
+        console.error("Failed to connect to MongoDB");
+        process.exit(1); // Opcionalmente, encerra o processo se a conexão falhar
+    }
+    const pixWorker = new PixWorker(); // Instancie o worker
+    await pixWorker.initialize(); // Aguarde a inicialização do worker
 
-const contextMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
-  ctx.state.context = { ctx };
-  await next();
-};
+    app.use(async (ctx, next) => {
+        ctx.set('Access-Control-Allow-Origin', '*');
+        ctx.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+        ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        if (ctx.method === 'OPTIONS') {
+            ctx.status = 204;
+        } else {
+            await next();
+        }
+    });
 
-router.post('/auth/register', contextMiddleware, graphqlHTTP((request, response, ctx) => {
-  return {
-    schema,
-    graphiql: true,
-    context: { ctx },
-  };
-}));
+    const schema = makeExecutableSchema({
+        typeDefs,
+        resolvers,
+    });
 
-router.post('/auth/login', contextMiddleware, graphqlHTTP((request, response, ctx) => {
-  return {
-    schema,
-    graphiql: true,
-    context: { ctx },
-  };
-}));
+    const contextMiddleware = async (ctx: Koa.Context, next: Koa.Next) => {
+        ctx.state.context = { ctx };
+        await next();
+    };
 
-router.use(authMiddleware);
+    router.post('/auth/register', contextMiddleware, graphqlHTTP((request, response, ctx) => {
+        return {
+            schema,
+            graphiql: true,
+            context: { ctx },
+        };
+    }));
 
-router.all('/graphql', contextMiddleware, graphqlHTTP((request, response, ctx) => {
-  return {
-    schema,
-    graphiql: true,
-    context: { ctx },
-  };
-}));
+    router.post('/auth/login', contextMiddleware, graphqlHTTP((request, response, ctx) => {
+        return {
+            schema,
+            graphiql: true,
+            context: { ctx },
+        };
+    }));
 
-app.use(bodyParser());
-app.use(router.routes()).use(router.allowedMethods());
+    router.use(authMiddleware);
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000/graphql');
+    router.all('/graphql', contextMiddleware, graphqlHTTP((request, response, ctx) => {
+        return {
+            schema,
+            graphiql: true,
+            context: { ctx },
+        };
+    }));
+
+    app.use(bodyParser());
+    app.use(router.routes()).use(router.allowedMethods());
+
+    app.listen(3000, () => {
+        console.log('Server running on http://localhost:3000/graphql');
+    });
+}
+
+startServer().catch((err) => {
+    console.error('Failed to start server:', err);
 });

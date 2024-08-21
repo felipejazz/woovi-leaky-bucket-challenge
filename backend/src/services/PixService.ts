@@ -9,19 +9,32 @@ import { AuthService } from './AuthService';
 
 const logger = createCustomLogger('pix-service');
 
-const pixQueue = new Queue('pixQueue', {
-    connection: RedisService.redis,
-});
-
-const pixQueueEvents = new QueueEvents('pixQueue', {
-    connection: RedisService.redis,
-});
 
 export class PixService {
+    private static pixQueue: Queue;
+    private static pixQueueEvents: QueueEvents;
 
-    static async makePix({ userName, key, value }: { userName: string, key: string, value: number }): Promise<Result<{ token: string | null, count: number | null }>> {        logger.info(`Enqueueing Pix request for user: ${userName}`);
+    static async initialize(): Promise<void> {
+        if (!this.pixQueue) {
+            this.pixQueue = new Queue('pixQueue', {
+                connection: RedisService.getInstance().redis,
+            });
+        }
+
+        if (!this.pixQueueEvents) {
+            this.pixQueueEvents = new QueueEvents('pixQueue', {
+                connection: RedisService.getInstance().redis,
+            });
+        }
+
+        logger.info('PixService initialized successfully.');
+    }
+
+    static async makePix({ userName, key, value }: { userName: string, key: string, value: number }): Promise<Result<{ token: string | null, count: number | null }>> {        
+        await this.initialize()
+        logger.info(`Enqueueing Pix request for user: ${userName}`);
     
-        const job = await pixQueue.add('process-pix', { userName, key, value }, {
+        const job = await this.pixQueue.add('process-pix', { userName, key, value }, {
             attempts: 1,
             backoff: 0,
         });
@@ -64,9 +77,9 @@ export class PixService {
             
     
             if (!(pixError instanceof NoTokenToConsumeError ||
-                  pixError instanceof InvalidPixKeyError ||
-                  pixError instanceof InvalidPixValueError ||
-                  pixError instanceof BucketNotFoundError)) {
+                pixError instanceof InvalidPixKeyError ||
+                pixError instanceof InvalidPixValueError ||
+                pixError instanceof BucketNotFoundError)) {
                     
                     logger.error("xiiiiiiii")
                 return new Result<{ token: string | null, count: number | null }>({ success: false, error: pixError, data: { token: userToken, count: tokenCount } });
@@ -113,7 +126,7 @@ export class PixService {
         return new Result<{ token: string | null, count: number | null }>({ success: true, data: { token: userToken, count: tokenCount } });
     }
     private static async waitForJobCompletion(job: Job): Promise<Error | boolean> {
-        return job.waitUntilFinished(pixQueueEvents)
+        return job.waitUntilFinished(this.pixQueueEvents)
             .then(() => {
                 logger.info(`Job ${job.id} completed successfully.`);
                 return true;  
@@ -164,8 +177,8 @@ export class PixService {
     }
 
     static async closeQueues(): Promise<void> {
-        await pixQueue.close();
-        await pixQueueEvents.close();
+        await this.pixQueue.close();
+        await this.pixQueueEvents.close();
     }
     static createPixError(message: string): PixError {
         logger.warn(message)

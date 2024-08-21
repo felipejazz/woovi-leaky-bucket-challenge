@@ -27,6 +27,7 @@ describe('Auth and PixController Integration', () => {
         mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
         const uri = mongoServer.getUri();
         await mongoose.connect(uri);
+        await RedisService.initialize();
 
         pixWorker = new PixWorker();
 
@@ -49,13 +50,14 @@ describe('Auth and PixController Integration', () => {
         await mongoose.disconnect();
         await mongoServer.stop();
         await PixService.closeQueues();
+        
         await RedisService.teardown(); 
         await pixWorker.closeWorker();
     });
 
     afterEach(async () => {
         await UserModel.deleteMany({});
-        await RedisService.redis.flushall();
+        await RedisService.getInstance().redis.flushall();
     });
 
     it('should register, login, and successfully simulate a Pix query', async () => {
