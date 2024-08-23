@@ -1,23 +1,5 @@
 
 services:
-  woovi-mongo:
-    build: ./db
-    container_name: woovi-mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - backend-network
-
-  woovi-redis:
-    build: ./redis
-    container_name: woovi-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - backend-network
-
   backend-server:
     build:
       context: ./backend
@@ -27,9 +9,6 @@ services:
       - "3000:3000"
     networks:
       - backend-network
-    depends_on:
-      - woovi-mongo
-      - woovi-redis
 
   frontend-server:
     build:
@@ -42,10 +21,6 @@ services:
       - backend-network
     depends_on:
       - backend-server
-
-volumes:
-  mongo-data:
-
 networks:
   backend-network:
     driver: bridge

@@ -9,7 +9,7 @@ class RedisService {
     public redis: Redis;
 
     private constructor() {
-        const redisHost = process.env.REDIS_HOST || 'localhost';
+        const redisHost = process.env.REDIS_HOST || 'woovi-redis';
         const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
         const redisPassword = process.env.REDIS_PASSWORD || '';
 
