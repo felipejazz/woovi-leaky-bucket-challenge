@@ -7,7 +7,7 @@ import Navbar from './components/NavBar';
 
 const App: React.FC = () => {
   return (
-    <Router basename="/woovi-leaky-bucket-challenge">
+    <Router>
       <div>
         <Navbar />
         <AuthComponent>
