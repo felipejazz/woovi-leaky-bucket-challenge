@@ -8,8 +8,6 @@ import { BucketService } from '../services/BucketService';
 const logger = createCustomLogger('authmiddleware');
 
 export const authMiddleware = async (ctx: Context, next: Next) => {
-    console.log('Headers:', ctx.headers);
-    console.log('Request body:', ctx.request.body);
     const authHeader = ctx.header.authorization;
 
     if (!authHeader) {

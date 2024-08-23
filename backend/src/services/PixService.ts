@@ -74,8 +74,6 @@ export class PixService {
             this.createPixError(jobResult.message)
 
             newUserToken = bucketAfterPix.tokens[0]
-            console.log(newUserToken)
-            console.log(token)
             logger.error("Pix ended with failure")
             return new Result<{ token: string | null, count: number | null }>({success:false, data: {token: newUserToken, count: tokensLeft }, error: jobResult})
         }
@@ -95,7 +93,6 @@ export class PixService {
                     error = new Error(typeof error === 'string' ? error : 'Unknown error');
                 }
                 error = this.createPixError(error.message)
-                console.log(error instanceof BucketRevokeTokenError)
     
                 logger.error(`Job ${job.id} failed with error: ${error.message}`);
                 return error;

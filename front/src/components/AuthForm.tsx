@@ -15,23 +15,25 @@ const AuthForm: React.FC = () => {
 
   const handleAuth = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    
+    console.log('userName:', username);
+  
     const token = localStorage.getItem('authToken');
     if (token) {
       navigate('/pix');
       return;
     }
-
+  
     const mutation = isLogin ? mutationsLoginMutation : mutationsRegisterMutation;
     commitMutation(RelayEnvironment, {
       mutation,
-      variables: { username, password },
+      variables: { userName: username, password }, 
       onCompleted: (response: {} | null) => {
         switch (true) {
           case isLogin: {
             const loginResponse = response as LoginMutationResponse;
             const token = loginResponse?.login?.token;
-
+  
             if (!token) {
               alert('Login failed. You can register if you do not have a user or check your password.');
               break;
@@ -44,13 +46,13 @@ const AuthForm: React.FC = () => {
             const registerResponse = response as RegisterMutationResponse;
             const errorMessage = registerResponse?.register?.errorMessage;
             const successMessage = registerResponse?.register?.successMessage;
-
+  
             if (successMessage) {
               alert('Registration successful. You can now log in.');
               setIsLogin(true);
               break;
             }
-
+  
             if (errorMessage) {
               if (errorMessage === 'Username already exists') {
                 alert('User already exists in our database.');
@@ -73,6 +75,7 @@ const AuthForm: React.FC = () => {
       },
     });
   };
+  
 
   return (
     <div style={styles.container}>

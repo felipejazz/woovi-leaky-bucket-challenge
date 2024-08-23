@@ -18,10 +18,10 @@ async function startServer() {
     const mongoConnectionResult = await UserService.connectMongo();
     if (!mongoConnectionResult.success) {
         console.error("Failed to connect to MongoDB");
-        process.exit(1); // Opcionalmente, encerra o processo se a conexão falhar
+        process.exit(1);
     }
-    const pixWorker = new PixWorker(); // Instancie o worker
-    await pixWorker.initialize(); // Aguarde a inicialização do worker
+    const pixWorker = new PixWorker();
+    await pixWorker.initialize();
 
     app.use(async (ctx, next) => {
         ctx.set('Access-Control-Allow-Origin', '*');

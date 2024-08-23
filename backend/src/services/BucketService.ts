@@ -112,7 +112,7 @@ export class BucketService {
     static async fillBucket({bucket, initialToken}: {bucket: IDocumentBucket, initialToken?:string}): Promise<Result<IDocumentBucket>> {
         logger.info(`Filling bucket for user: ${bucket.userName}`);
         
-
+        bucket.tokens = []
         const tokensToAdd = MAX_TOKENS - bucket.tokens.length - (initialToken ? 1 : 0);
         
         if (tokensToAdd <= 0) {

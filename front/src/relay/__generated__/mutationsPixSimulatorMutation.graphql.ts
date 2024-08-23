@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<9f195bd4abb2c2243412b5d4fcf8b170>>
+ * @generated SignedSource<<f2689fb6a320eb2285d37b899ce9cd5b>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -16,6 +16,7 @@ export type mutationsPixSimulatorMutation$variables = {
 export type mutationsPixSimulatorMutation$data = {
   readonly simulatePixQuery: {
     readonly errorMessage: string | null | undefined;
+    readonly newUserToken: string | null | undefined;
     readonly successMessage: string | null | undefined;
     readonly tokensLeft: number | null | undefined;
   } | null | undefined;
@@ -78,6 +79,13 @@ v1 = [
         "kind": "ScalarField",
         "name": "tokensLeft",
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "newUserToken",
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -101,16 +109,16 @@ return {
     "selections": (v1/*: any*/)
   },
   "params": {
-    "cacheID": "824640accb95bcd562620b452c372119",
+    "cacheID": "54a6f19e338c1806085317197cdcb8e9",
     "id": null,
     "metadata": {},
     "name": "mutationsPixSimulatorMutation",
     "operationKind": "mutation",
-    "text": "mutation mutationsPixSimulatorMutation(\n  $key: String!\n  $value: Float!\n) {\n  simulatePixQuery(key: $key, value: $value) {\n    successMessage\n    errorMessage\n    tokensLeft\n  }\n}\n"
+    "text": "mutation mutationsPixSimulatorMutation(\n  $key: String!\n  $value: Float!\n) {\n  simulatePixQuery(key: $key, value: $value) {\n    successMessage\n    errorMessage\n    tokensLeft\n    newUserToken\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "dbcf28e91201b59c73b3fed8d0c1a1f7";
+(node as any).hash = "12fd58320bdbeae35f74030b00a6f625";
 
 export default node;

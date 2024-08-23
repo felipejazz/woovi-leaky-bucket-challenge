@@ -10,7 +10,7 @@ interface AuthComponentProps {
 const AuthComponent: React.FC<AuthComponentProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Estado para indicar que estamos verificando a autenticação
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -25,7 +25,7 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ children }) => {
       }
     }
 
-    setIsCheckingAuth(false); // Concluímos a verificação de autenticação
+    setIsCheckingAuth(false);
   }, [navigate, location]);
 
   if (isCheckingAuth) {
