@@ -25,11 +25,11 @@ async function startServer() {
     await pixWorker.initialize();
     app.use(cors({
         origin: 'http://felipejazz.com:3001',
-	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
-        allowHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
+	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+        allowHeaders: ['Content-Type', 'Authorization'],
     }));
 
-    // Configurar cabeçalhos CORS manualmente (opcional)
+    
     app.use(async (ctx, next) => {
         ctx.set('Access-Control-Allow-Origin', 'http://felipejazz.com:3001');
 	ctx.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
