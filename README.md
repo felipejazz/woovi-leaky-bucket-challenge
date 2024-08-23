@@ -17,17 +17,10 @@ To build and run the project, follow these steps:
 
 1. **Navigate to the Project Root**: Ensure you are in the root directory of the project where the `docker-compose.yml` file is located.
 
-2. **Build and Start the Containers**:
+2. **Access the Application**:
 
-   ```bash
-   docker-compose up --build
+    Available at http://felipejazz.com:3001
 
-3. **Access the Application**:
-
-    Frontend: Available at http://localhost:3001
-
-    Backend (GraphQL Server): Available at http://localhost:3000
-    
     The backend Postaman Collection is located in woovi-challenge.postman_collection.json
 
     To see the requirements of bucket leak system. You can read the challenge description in link below:
