@@ -6,10 +6,9 @@ import {
   FetchFunction,
 } from "relay-runtime";
 
-const GRAPHQL_ENDPOINT = "http://127.0.0.1:3000/graphql";
-const LOGIN_ENDPOINT = "http://127.0.0.1:3000/auth/login";
-const REGISTER_ENDPOINT = "http://127.0.0.1:3000/auth/register";
-
+const GRAPHQL_ENDPOINT = "http://felipejazz.com:3000/graphql";
+const LOGIN_ENDPOINT = "http://felipejazz.com:3000/auth/login";
+const REGISTER_ENDPOINT = "http://felipejazz.com:3000/auth/register";
 
 function getAuthToken() {
   

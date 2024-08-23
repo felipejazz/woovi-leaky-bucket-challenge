@@ -1,6 +1,7 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
+import cors from '@koa/cors'; 
 import { graphqlHTTP } from 'koa-graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { authMiddleware } from './middlewares/authMiddleware';
@@ -22,12 +23,16 @@ async function startServer() {
     }
     const pixWorker = new PixWorker();
     await pixWorker.initialize();
-    app.use(cors());
+    app.use(cors({
+        origin: 'http://felipejazz.com:3001',
+	allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
+        allowHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
+    }));
 
-
+    // Configurar cabeçalhos CORS manualmente (opcional)
     app.use(async (ctx, next) => {
-        ctx.set('Access-Control-Allow-Origin', '*');
-        ctx.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+        ctx.set('Access-Control-Allow-Origin', 'http://felipejazz.com:3001');
+	ctx.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
         ctx.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         if (ctx.method === 'OPTIONS') {
             ctx.status = 204;
@@ -82,7 +87,4 @@ async function startServer() {
 startServer().catch((err) => {
     console.error('Failed to start server:', err);
 });
-function cors(): any {
-    throw new Error('Function not implemented.');
-}
 
