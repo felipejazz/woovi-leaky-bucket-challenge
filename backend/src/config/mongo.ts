@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import createCustomLogger from '../utils/logger';
 
 const logger = createCustomLogger('mongo-service');
-const mongoURI = process.env.MONGO_URI || 'mongodb://woovi-mongo:27017/woovi-challenge';
+const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/woovi-challenge';
 
 export const connectToMongoDB = async () => {
     try {

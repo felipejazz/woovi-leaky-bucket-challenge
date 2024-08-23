@@ -5,7 +5,7 @@ import { FailedConnectMongo } from '../interfaces/Mongo/Errors';
 
 const logger = createCustomLogger('mongo-service');
 
-const mongoUri = 'mongodb://woovi-mongo:27017/wooviDatabase';
+const mongoUri = 'mongodb://localhost:27017/wooviDatabase';
 let isConnected = false
 
 export const connectToMongo = async (): Promise<Result<void>> => {
