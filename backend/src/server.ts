@@ -22,6 +22,8 @@ async function startServer() {
     }
     const pixWorker = new PixWorker();
     await pixWorker.initialize();
+    app.use(cors());
+
 
     app.use(async (ctx, next) => {
         ctx.set('Access-Control-Allow-Origin', '*');
@@ -33,7 +35,6 @@ async function startServer() {
             await next();
         }
     });
-
     const schema = makeExecutableSchema({
         typeDefs,
         resolvers,
@@ -81,3 +82,7 @@ async function startServer() {
 startServer().catch((err) => {
     console.error('Failed to start server:', err);
 });
+function cors(): any {
+    throw new Error('Function not implemented.');
+}
+
