@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AuthForm from './components/AuthForm';
@@ -9,7 +7,7 @@ import Navbar from './components/NavBar';
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename="/woovi-leaky-bucket-challenge">
       <div>
         <Navbar />
         <AuthComponent>
