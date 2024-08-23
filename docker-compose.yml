@@ -1,6 +1,23 @@
-version: '3.8'
 
 services:
+  woovi-mongo:
+    build: ./db
+    container_name: mongo-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
+
+  woovi-redis:
+    build: ./redis
+    container_name: woovi-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend-network
+
   backend-server:
     build:
       context: ./backend
@@ -8,6 +25,12 @@ services:
     container_name: woovi-challenge-backend-server
     ports:
       - "3000:3000"
+    networks:
+      - backend-network
+    depends_on:
+      - woovi-mongo
+      - woovi-redis
+
   frontend-server:
     build:
       context: ./front
@@ -15,6 +38,17 @@ services:
     container_name: woovi-challenge-frontend-server
     ports:
       - "3001:3001"
+    networks:
+      - backend-network
+    depends_on:
+      - backend-server
+
+volumes:
+  mongo-data:
+
+networks:
+  backend-network:
+    driver: bridge
 
 
 
