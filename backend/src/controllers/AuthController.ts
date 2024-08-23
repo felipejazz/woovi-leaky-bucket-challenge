@@ -1,6 +1,5 @@
 import { Context } from 'koa';
-import { AuthService } from '../services/AuthService';
-import { AuthUser } from '../models/AuthUser';
+import { UserService } from '../services/UserService';
 import { IAuthRequestBody } from '../interfaces/Auth/IAuthRequestBody';
 import { BucketService } from '../services/BucketService';
 import createCustomLogger from '../utils/logger';
@@ -14,7 +13,7 @@ export class AuthController {
         logger.info(`Attempting to register user: ${userName}`);
 
 
-        const existingUserResult = await AuthService.getUser(userName);
+        const existingUserResult = await UserService.getUser(userName);
 
         if (existingUserResult.success) {
             logger.warn(`Registration failed: Username already exists - ${userName}`);
@@ -24,10 +23,10 @@ export class AuthController {
         }
 
     
-        const token = AuthService.generateToken(userName);
+        const token = UserService.generateToken(userName);
 
-        const registeringAuthUser = new AuthUser({userName, password, token})
-        const createUserResult = await AuthService.createUser(registeringAuthUser);
+        const registeringAuthUser = {userName, password, token}
+        const createUserResult = await UserService.createUser(registeringAuthUser);
 
         if (!createUserResult.success) {
             logger.error(`Error registering user: ${createUserResult.error}`);
@@ -46,7 +45,7 @@ export class AuthController {
 
         logger.info(`Attempting login for user: ${userName}`);
 
-        const userResult = await AuthService.getUser(userName);
+        const userResult = await UserService.getUser(userName);
         if (!userResult.success) {
             logger.warn(`Login failed for user: ${userName} - User not found`);
             ctx.status = 401;
@@ -68,10 +67,10 @@ export class AuthController {
             return;
         }
 
-        const token = AuthService.generateToken(userName);
+        const token = UserService.generateToken(userName);
         user.token = token
 
-        const updateUserResult = await AuthService.updateUser(user);
+        const updateUserResult = await UserService.updateUser(user);
 
         if (!updateUserResult.success) {
             logger.warn(`Login failed for user: ${userName} - ${updateUserResult.error}`);
@@ -96,15 +95,15 @@ export class AuthController {
             return;
         }
 
-        const userWithBucket = userCreatedBucketResult.data
-        if (!userWithBucket) {
+        const userBucket = userCreatedBucketResult.data
+        if (!userBucket) {
             logger.warn(`Login failed for user: ${userName} - Failed to create bucket`);
             ctx.status = 500;
             ctx.body = { message: userCreatedBucketResult.error };
             return;
         }
 
-        const fillBucketResult = await BucketService.fillBucket(userCreated);
+        const fillBucketResult = await BucketService.fillBucket({bucket: userBucket, initialToken: token});
         if (!fillBucketResult.success) {
             logger.warn(`Login failed for user: ${userName} - Failed to fill bucket`);
             ctx.status = 500;
@@ -117,51 +116,10 @@ export class AuthController {
         ctx.body = { token };
         
 
-        logger.info(`User logged in successfully: ${userName}`);
+
 
         ctx.body = { token };
         return
     }
 
-    static async logout(ctx: Context): Promise<void> {
-        const token = ctx.headers.authorization?.split(' ')[1];
-
-        if (!token) {
-            logger.warn('Logout failed: No token provided');
-            ctx.status = 400;
-            ctx.body = { message: 'Token is required' };
-            return;
-        }
-
-        logger.info('Attempting logout');
-
-        const getUserResult = await AuthService.getUser(token);
-
-        if(!getUserResult.success) {
-            logger.warn('Logout attempted while get user');
-            ctx.status = 401;
-            ctx.body = { message: getUserResult.error };
-            return;
-        }
-        const userFromDb = getUserResult.data
-
-        if (!userFromDb) {
-            logger.warn('Logout attempted with internal error retrieving user');
-            ctx.status = 500;
-            ctx.body = { message: 'error retrieving user from db'};
-            return;
-        }
-
-
-        if (userFromDb.bucket) {
-            userFromDb.bucket.tokens.forEach(token => {
-                AuthService.revokeToken({user: userFromDb, token});
-            });
-        }
-
-        logger.info(`User logged out successfully: ${userFromDb.userName}`);
-
-        ctx.status = 200;
-        ctx.body = { message: 'Logout successful, all tokens revoked' };
-    }
 }

@@ -1,18 +1,20 @@
 import { Context } from 'koa';
 import { PixService } from '../services/PixService';
 import createCustomLogger from '../utils/logger';
-import { AuthService } from '../services/AuthService';
-import { BucketNoValidTokensError, NoTokenToConsumeError } from '../interfaces/Bucket/Errors';
+import { UserService } from '../services/UserService';
+import { BucketNoValidTokensError, BucketRevokeTokenError, NoTokenToConsumeError } from '../interfaces/Bucket/Errors';
 import { BucketService } from '../services/BucketService';
 import { InvalidPixKeyError, InvalidPixValueError } from '../interfaces/Pix/Errors';
-import { IAuthUser } from '../interfaces/User/IAuthUser';
+import { IDocumentUser } from '../interfaces/User/IDocumentUser';
 
 const logger = createCustomLogger('pix-controller');
 
 export class PixController {
     static async simulatePixQuery(ctx: Context) {
         const userName = ctx.state.user.userName;
-        const userResult = await AuthService.getUser(userName);
+        const token = ctx.state.token
+
+        const userResult = await UserService.getUser(userName);
 
         if (!userResult || !userResult.success || !userResult.data) {
             const error = new Error('Failed to get user from DB')
@@ -30,7 +32,8 @@ export class PixController {
 
         const { key, value } = ctx.request.body as { key: string, value: number };
 
-        const makePixResult = await PixService.makePix({ userName, key, value });
+        const makePixResult = await PixService.makePix({ userName, token, key, value });
+
 
         const newUserToken = makePixResult.data?.token ?? ctx.state.user.token
         const tokenCount = makePixResult.data?.count ?? null;
@@ -57,13 +60,20 @@ export class PixController {
         };
     }
     
-    static handleError({ctx, error, userName, tokensLeft, newUserToken}:{ctx: Context, error: Error, userName: string | IAuthUser, tokensLeft: number | null, newUserToken: string | null}): void {
+    static handleError({ctx, error, userName, tokensLeft, newUserToken}:{ctx: Context, error: Error, userName: string | IDocumentUser, tokensLeft: number | null, newUserToken: string | null}): void {
+
         switch (error.constructor) {
             case NoTokenToConsumeError || BucketNoValidTokensError:
                 logger.warn(`Error during Pix query for user: ${userName}, error: ${error.message}`);
                 ctx.status = 429;
                 ctx.body = { errorMessage: 'Too many requests', tokensLeft: tokensLeft, newUserToken: newUserToken };
                 break;
+            case BucketRevokeTokenError:
+                logger.error(`Error during Pix query for user: ${userName}, error: Token already revoked`);
+                ctx.status = 400;
+                ctx.body = { errorMessage: error.message, tokensLeft: tokensLeft, newUserToken: newUserToken };
+                break;
+
 
             case InvalidPixKeyError:
                 logger.error(`Error during Pix query for user: ${userName}, error: Invalid PIX key`);

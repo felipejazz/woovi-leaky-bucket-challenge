@@ -41,14 +41,6 @@ export const resolvers = {
       await AuthController.login(ctx);
       return ctx.body as { token: string; message: string };
     },
-    logout: async (
-      _: unknown,
-      __: unknown,
-      { ctx }: GraphQLContext
-    ): Promise<string | { message: string }> => {
-      await AuthController.logout(ctx);
-      return (ctx.body as { message: string }).message;
-    },
     simulatePixQuery: async (
       _: unknown,
       { key, value }: SimulatePixQueryArgs,

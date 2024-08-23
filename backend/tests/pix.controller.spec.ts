@@ -11,9 +11,9 @@ import { PixService } from '../src/services/PixService';
 import { UserModel } from '../src/models/mongoose/UserModel';
 import PixWorker from '../src/workers/PixWorker';
 import { authMiddleware } from '../src/middlewares/authMiddleware';
-import { AuthService } from '../src/services/AuthService';
 import { InvalidPixKeyError, InvalidPixValueError } from '../src/interfaces/Pix/Errors';
 import { BucketService } from '../src/services/BucketService';
+
 
 describe('Auth and PixController Integration', () => {
     let app: Koa;
@@ -50,7 +50,6 @@ describe('Auth and PixController Integration', () => {
         await mongoose.disconnect();
         await mongoServer.stop();
         await PixService.closeQueues();
-        
         await RedisService.teardown(); 
         await pixWorker.closeWorker();
     });

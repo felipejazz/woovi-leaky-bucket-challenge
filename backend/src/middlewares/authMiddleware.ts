@@ -1,5 +1,5 @@
 import { Context, Next } from 'koa';
-import { AuthService } from '../services/AuthService';
+import { UserService } from '../services/UserService';
 import jwt from 'jsonwebtoken';
 import { IDecodedJWT } from '../interfaces/IDecodedJWT';
 import createCustomLogger from '../utils/logger';
@@ -8,6 +8,8 @@ import { BucketService } from '../services/BucketService';
 const logger = createCustomLogger('authmiddleware');
 
 export const authMiddleware = async (ctx: Context, next: Next) => {
+    console.log('Headers:', ctx.headers);
+    console.log('Request body:', ctx.request.body);
     const authHeader = ctx.header.authorization;
 
     if (!authHeader) {
@@ -27,30 +29,17 @@ export const authMiddleware = async (ctx: Context, next: Next) => {
             ctx.body = { message: 'Invalid token' };
             return;
         }
-        logger.info(`Token verificado para o usuário: ${decodedToken.user}`);
-        const userResult = await AuthService.getUser(decodedToken.user);
+        const userResult = await UserService.getUser(decodedToken.user);
         if (!userResult.success || !userResult.data) {
+
             ctx.status = 401;
-            ctx.body = { message: 'Unauthorized' };
+            ctx.body = { errorMessage: 'Unauthorized' };
             return;
         }
         
         const user = userResult.data;
-        const tokenRevokedResult = await AuthService.verifyToken({user: user, token: token})
-
-        if (tokenRevokedResult.success ) {
-            ctx.status = 401;
-            ctx.body = { message: 'Token Revoked' };
-            return;
-        }
-        if (user.noValidTokens){
-
-            ctx.status = 429;
-            ctx.body = { errorMessage: 'Too many requests'};
-            return
-                
-        }
         ctx.state.user = user
+        ctx.state.token = token
         await next();
     } catch (error) {
         if (error instanceof Error) {

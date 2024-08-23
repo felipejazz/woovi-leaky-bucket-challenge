@@ -23,6 +23,7 @@ export class BucketNotFoundError extends Error {
     constructor(message: string = 'Bucket not found in MongoDb') {
         super(message);
         this.name = 'BucketNotFoundError';
+        
     }
 }
 
@@ -58,5 +59,20 @@ export class BucketUnexpectedError extends Error {
     constructor(message: string = 'Unexpected error during bucket operation') {
         super(message);
         this.name = 'GetBucketUnexpectedError';
+    }
+}
+
+export class BucketRevokeTokenError extends Error {
+    constructor(message: string = 'Fail while revoking token') {
+        super(message);
+        this.name = 'BukcetRevokeTokenError';
+    }
+}
+
+
+export class BucketTokenVerificationError extends Error {
+    constructor(message: string = 'Esrror verifying token operation') {
+        super(message);
+        this.name = 'BucketTokenVerificationError';
     }
 }

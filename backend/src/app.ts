@@ -10,7 +10,6 @@ const router = new Router();
 
 router.post('/auth/register', AuthController.register);
 router.post('/auth/login', AuthController.login);
-router.get('/auth/logout', authMiddleware, AuthController.logout);
 router.post('/pix/query', authMiddleware, PixController.simulatePixQuery);
 
 app.use(bodyParser());

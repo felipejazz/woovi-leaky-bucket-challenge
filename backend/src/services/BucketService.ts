@@ -1,11 +1,12 @@
-import { AuthService } from "./AuthService";
-import { BucketCountError, BucketFullError, BucketNotFoundError, BucketNoValidTokensError, BucketUnexpectedError, NoTokenToConsumeError, CreateBucketError } from "../interfaces/Bucket/Errors";
+import { UserService } from "./UserService";
+import { BucketCountError, BucketFullError, BucketNotFoundError, BucketNoValidTokensError, BucketUnexpectedError, NoTokenToConsumeError, CreateBucketError, BucketRevokeTokenError, BucketTokenVerificationError } from "../interfaces/Bucket/Errors";
 import createCustomLogger from "../utils/logger";
 import { BucketModel } from "../models/mongoose/BucketModel";
 import { Result } from "../models/Result";
 import { IDocumentBucket } from "../interfaces/Bucket/IDocumentBucket";
-import { IDocumentAuthUser } from "../interfaces/User/IDocumentAuthUser";
-import { IAuthUser } from "../interfaces/User/IAuthUser";
+import { IDocumentUser } from "../interfaces/User/IDocumentUser";
+import jwt from "jsonwebtoken";
+import { IDecodedJWT } from "../interfaces/IDecodedJWT";
 
 
 const MAX_TOKENS = 10;
@@ -13,7 +14,7 @@ const TOKENS_INTERVAL = 3600000;
 const logger = createCustomLogger('bucket-service');
 export class BucketService {
 
-    static async createBucket(user: IDocumentAuthUser): Promise<Result<IDocumentBucket> > {
+    static async createBucket(user: IDocumentUser): Promise<Result<IDocumentBucket> > {
 
         logger.info(`Checking if bucket exists for user: ${user.userName}`);
 
@@ -25,8 +26,8 @@ export class BucketService {
 
         if (!bucketResult.success && (bucketResult.error instanceof BucketNotFoundError)) {
             logger.info(`Creating new bucket for user: ${user.userName}`);
-            const userAuthDbResult = await AuthService.getUser(user.userName) 
-            const userAuthDb = userAuthDbResult.data as IDocumentAuthUser
+            const userAuthDbResult = await UserService.getUser(user.userName) 
+            const userAuthDb = userAuthDbResult.data as IDocumentUser
             let bucketToCreate = new BucketModel({ userName: userAuthDb.userName, tokens: [] }) as IDocumentBucket;
             
             try {
@@ -61,7 +62,7 @@ export class BucketService {
 
     static async getBucket(userName: string): Promise<Result<IDocumentBucket>> {
         try {
-            const userBucket = await BucketModel.findOne({ userName }).lean<IDocumentBucket>();
+            const userBucket = await BucketModel.findOne({ userName })
 
             if (!userBucket) {
                 logger.warn(`Cannot find bucket for user: ${userName}`);
@@ -81,7 +82,7 @@ export class BucketService {
                 const tokensToActuallyAdd = newTokenCount - userBucket.tokens.length;
 
                 for (let i = 0; i < tokensToActuallyAdd; i++) {
-                    userBucket.tokens.push(AuthService.generateToken(userBucket.userName));
+                    userBucket.tokens.push(UserService.generateToken(userBucket.userName));
                 }
 
                 userBucket.lastTimeStamp = now;
@@ -108,43 +109,29 @@ export class BucketService {
         }
     }
 
-    static async fillBucket(user: IDocumentAuthUser): Promise<Result<IDocumentBucket>> {
-        logger.info(`Filling bucket for user: ${user.userName}`);
+    static async fillBucket({bucket, initialToken}: {bucket: IDocumentBucket, initialToken?:string}): Promise<Result<IDocumentBucket>> {
+        logger.info(`Filling bucket for user: ${bucket.userName}`);
+        
 
-        const bucketResult = await this.getBucket(user.userName);
-
-        if (!bucketResult.success) {
-            logger.error(`Failed to retrieve bucket for user: ${user.userName}`);
-            return new Result<IDocumentBucket>({ success: false, data: null, error: bucketResult.error });
-        }
-
-        const userBucket = bucketResult.data;
-        if (!userBucket) {
-            return new Result<IDocumentBucket>({ success: false, data: null, error: new BucketUnexpectedError('Error unpacking bucket data') });
-        }
-        userBucket.tokens = []
-        const tokensToAdd = MAX_TOKENS - userBucket.tokens.length;
+        const tokensToAdd = MAX_TOKENS - bucket.tokens.length - (initialToken ? 1 : 0);
+        
         if (tokensToAdd <= 0) {
-            logger.info(`Bucket already full for user: ${user.userName}`);
-            return new Result<IDocumentBucket>({ success: true, data: userBucket });
+            logger.info(`Bucket already full`);
+            return new Result<IDocumentBucket>({ success: true, data: bucket });
         }
-
-        logger.info(`Adding ${tokensToAdd} tokens to bucket for user: ${user.userName}`);
+        
+        logger.info(`Adding ${tokensToAdd} tokens to bucket`);
+        if (initialToken) {
+            bucket.tokens.push(initialToken)
+        }
         for (let i = 0; i < tokensToAdd; i++) {
-            let newToken
-            if(i===0){
-                newToken = user.token
-                userBucket.tokens.push(newToken);
-                continue
-            }
-            newToken = AuthService.generateToken(userBucket.userName);
-            userBucket.tokens.push(newToken);
+            const newToken = UserService.generateToken(bucket.userName);
+            bucket.tokens.push(newToken);
         }
-
-        const updateResult = await this.updateBucket(userBucket);
+        const updateResult = await this.updateBucket(bucket);
 
         if (!updateResult.success) {
-            logger.error(`Failed to update bucket for user: ${user.userName}`);
+            logger.error(`Failed to update bucket for user: ${bucket.userName}`);
             return new Result<IDocumentBucket>({ success: false, data: null, error: updateResult.error });
         }
 
@@ -153,7 +140,7 @@ export class BucketService {
             return new Result<IDocumentBucket>({ success: false, data: null, error: new BucketUnexpectedError('Error unpacking updated bucket data') });
         }
 
-        logger.info(`Bucket filled successfully for user: ${user.userName}`);
+        logger.info(`Bucket filled successfully for user: ${bucket.userName}`);
         return new Result<IDocumentBucket>({ success: true, data: updatedBucket });
     }
 
@@ -200,25 +187,12 @@ export class BucketService {
 
     static async addToken({token, bucket}:{token: string, bucket: IDocumentBucket}): Promise<Result<IDocumentBucket>> {
         logger.info(`Try to add token to user: ${bucket.userName}`);
-
-        const bucketResult = await this.getBucket(bucket.userName)
-        
-        if (!bucketResult.success){
-            logger.error(`Cannot get bucket from user: ${bucket.userName}`);
-
-            return new Result<IDocumentBucket>({success:false, data:null, error:bucketResult.error})
+        if (bucket.tokens.length >= MAX_TOKENS) {
+            const error = new BucketFullError()
+            return new Result<IDocumentBucket>({success:false, data: null, error: error})
         }
-        const userBucket = bucketResult.data
-        if(!userBucket){
-            return new Result<IDocumentBucket>({success:false, data:null, error:new BucketUnexpectedError('Error unpacking first userBucket data')})
-        }
-        if (userBucket.tokens.length >= MAX_TOKENS) {
-            logger.warn(`Cannot add token for user: ${bucket.userName}, bucket already full`);
-            return new Result<IDocumentBucket>({success: false, data: null, error: new BucketFullError()});
-        }
-
-        userBucket.tokens.push(token);
-        const updateBucketResult = await this.updateBucket(userBucket);
+        bucket.tokens.push(token);
+        const updateBucketResult = await this.updateBucket(bucket);
         if (!updateBucketResult.success) {
             return new Result<IDocumentBucket>({success:false, data: null, error: updateBucketResult.error})
 
@@ -232,94 +206,52 @@ export class BucketService {
         return new Result({success: true, data: updatedBucket});
     }
 
-    static async getTokenToConsume(user: IDocumentAuthUser): Promise<Result<string>> {
-        const userBucketResult = await this.getBucket(user.userName);
+    static async revokeToken({bucket, token}:{bucket: IDocumentBucket, token: string}): Promise<Result<IDocumentBucket>> {
     
-        if(!user) {
-            const error = new Error('Error unpacking user');
-            return new Result<string>({ success: false, data: null, error: error });
-        }
-        if (!userBucketResult.success){
-            return new Result<string>({ success: false, data: null, error: new BucketNotFoundError() });
-        }
-        const userBucket = userBucketResult.data;
-        if (!userBucket) {
-            return new Result<string>({ success: false, data: null, error: new Error("Error unpacking userBucket object") });
-        }
-    
-        let token: string;
-    
-        if (userBucket.tokens.length > 0) {
-            token = userBucket.tokens[0] as string;
-            if (!(token === user.token)){
-                
-                user.token = token;
-                const userTokenUpdateResult = await AuthService.updateUser(user);
-                if (!userTokenUpdateResult.success) {
-                    const error = new Error('Error updating user');
-                    return new Result<string>({ success: false, data: null, error: error });
-                }
-                userBucket.tokens.shift() 
-                const userBucketUpdateResult = await this.updateBucket(userBucket)
-                if (!userBucketUpdateResult.success) {
-                    const error = new Error('Error updating bucket');
-                    return new Result<string>({ success: false, data: null, error: error });
-                }
-                if (userBucket.tokens.length ===0) {
-                    user.noValidTokens = true;
-                    const userTokenUpdateResult = await AuthService.updateUser(user);
-                    if (!userTokenUpdateResult.success){
-                        return new Result<string>({ success: false, data: null, error: new BucketUnexpectedError('Error while trying to get user result object') });
-                    }
+        logger.info(`Revoking token for ${bucket.userName}`)
 
-                }
-                logger.info(`Token to consume successfully retrieved for user ${user.userName}`);
-                return new Result<string>({ success: true, data: token });
-            }
-            token = userBucket.tokens[1]
-            userBucket.tokens.shift()
-            user.token = token;
-            const userTokenUpdateResult = await AuthService.updateUser(user);
-            if (!userTokenUpdateResult.success) {
-                const error = new Error('Error updating user');
-                return new Result<string>({ success: false, data: null, error: error });
-            }
-            const userBucketUpdateResult = await this.updateBucket(userBucket)
-            if (!userBucketUpdateResult.success) {
-                const error = new Error('Error updating bucket');
-                return new Result<string>({ success: false, data: null, error: error });
-            }
-            if (userBucket.tokens.length ===0) {
-                user.noValidTokens = true;
-                const userTokenUpdateResult = await AuthService.updateUser(user);
-                if (!userTokenUpdateResult.success){
-                    return new Result<string>({ success: false, data: null, error: new BucketUnexpectedError('Error while trying to get user result object') });
-                }
-
-            }
-    
-            logger.info(`Token to consume successfully retrieved for user ${user.userName}`);
-            return new Result<string>({ success: true, data: token });
+        if (bucket.revokedTokens.includes(token)) {
+            logger.warn(`Token is already revoked for user: ${bucket.userName}`);
+            return new Result<IDocumentBucket>({ success: false, data: bucket, error: new BucketRevokeTokenError("Token is already revoked") });
         }
-        token = user.token
-        return new Result<string>({ success: false, data: token, error: new NoTokenToConsumeError() });
+        if (!bucket.tokens.includes(token)){
+            logger.warn(`Token does not belongs to user: ${bucket.userName}`);
+            return new Result<IDocumentBucket>({ success: false, data: bucket, error: new BucketRevokeTokenError("Token does not belong to user") });
+        }
+        
+        bucket.tokens = bucket.tokens.filter(t => t !== token);
+        bucket.revokedTokens.push(token)
+        const bucketUpdateResult = await this.updateBucket(bucket)
+        if(!bucketUpdateResult){
+            logger.error(`Error in update bucket result object`);
+            return new Result<IDocumentBucket>({ success: false, data: bucket, error: new BucketRevokeTokenError("Error updating user") });
+        }
+
+        if(!bucketUpdateResult.success){
+            logger.error(`Error updating bucket after revoke token`)
+            
+            return new Result<IDocumentBucket>({ success: false, data: bucket, error: bucketUpdateResult.error });
+        }
+        const updatedBucket = bucketUpdateResult.data
+        logger.warn(`Token is already revoked for user: ${bucket.userName}`);
+            return new Result<IDocumentBucket>({ success: true, data: updatedBucket});
+
+    }
+    static async verifyToken({token}: {bucket: IDocumentBucket, token: string}) {
+        try {
+            const decoded = jwt.verify(token, process.env.SECRET_KEY || 'woovi-challenge-secret') as IDecodedJWT;
+            return new Result<IDecodedJWT>({success: true, data: decoded});
+        } catch (error) {
+            if (!(error instanceof jwt.JsonWebTokenError)) {
+                return new Result<IDecodedJWT>({success: false, data: null, error: new BucketUnexpectedError()})
+            }
+            return new Result<IDecodedJWT>({success: false, data: null, error: new BucketTokenVerificationError(error.message)});
+        }
     }
     
-
-    static async checkBucket(bucket: IDocumentBucket): Promise<Result<boolean>> {
-        logger.info(`Checking if user token is in user bucket: ${bucket.userName}`);
-        const userBucketResult = await this.getBucket(bucket.userName)
-        if(!userBucketResult.success) {
-            return new Result({success: false, data: false, error: userBucketResult.error});
-
-        }
-        if(!userBucketResult.data){
-            throw new BucketUnexpectedError("Fail when unpacking user bucket result object");
-            
-        }
-        const userBucket = userBucketResult.data
-
-        if (userBucket.tokens.length === 0) {
+    static async checkIfBucketIsEmpty(bucket: IDocumentBucket): Promise<Result<boolean>> {
+        logger.info(`Ver if bucket token is in user bucket: ${bucket.userName}`);
+        if (bucket.tokens.length === 0) {
             logger.warn(`Bucket is empty. No valid tokens available for user: ${bucket.userName}`);
             return new Result({success: false, data: false, error: new BucketNoValidTokensError()});
         }
@@ -327,22 +259,7 @@ export class BucketService {
         return new Result({success: true, data: true});
     }
 
-    static async consumeToken(user:IDocumentAuthUser): Promise<Result<boolean>> {
-        logger.warn(`Starting to try to consume token for user: ${user.userName}`);
-        const userActualToken = user.token
-        const revokeTokenResult =  await AuthService.revokeToken({user, token: userActualToken});
-        if (!revokeTokenResult) {
-            return new Result<boolean>({success: false, data: null, error: new BucketUnexpectedError('Error unpacking revoked token get user result object')})
-        }
-        if(!revokeTokenResult.success) {
-            return new Result<boolean>({success: false, data: null, error: revokeTokenResult.error})
-        }
-        
-        logger.info(`Token consumed for user: ${user.userName}`);
-        return new Result<boolean>({data: true, success: true});
-    }
-
-    static async getTokenCount(user: IDocumentAuthUser): Promise<Result<number>> {
+    static async getTokenCount(user: IDocumentUser): Promise<Result<number>> {
         const userBucketResult = await this.getBucket(user.userName)
         if(!userBucketResult.success) {
             return new Result<number>({success: false, data:null,  error: userBucketResult.error})

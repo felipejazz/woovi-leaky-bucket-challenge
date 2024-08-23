@@ -1,8 +1,7 @@
-import { Document, Types } from "mongoose";
-import { IAuthUser } from "../User/IAuthUser";
+import { IUser } from "../User/IUser";
 
 export interface IBucket{
-    user: IAuthUser;
+    user: IUser;
     token: Array<string>;
     lastTimeStamp: Date;
 }

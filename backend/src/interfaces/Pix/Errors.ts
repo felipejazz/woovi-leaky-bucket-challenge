@@ -16,9 +16,17 @@ export class InvalidPixValueError extends Error {
     }
 }
 
+export class PixTooManyRequestsError extends Error {
+    constructor(message:string = 'Too many Requests') {
+        super(message);
+        this.name = 'PixTooManyRequestsError';
+        this.message= 'Too many requests';
+    }
+}
+
 export type PixError = 
     | BucketNoValidTokensError
     | BucketNotFoundError
     | InvalidPixKeyError
     | InvalidPixValueError
-    | Error;
+    | PixTooManyRequestsError

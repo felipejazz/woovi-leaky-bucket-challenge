@@ -1,21 +1,24 @@
 import { BucketService } from '../src/services/BucketService';
-import { AuthService } from '../src/services/AuthService';
-import { AuthUser } from '../src/models/AuthUser';
+import { UserService } from '../src/services/UserService';
 import { UserModel } from '../src/models/mongoose/UserModel';
 import mongoose from 'mongoose';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { IDocumentBucket } from '../src/interfaces/Bucket/IDocumentBucket';
 import { BucketFullError, BucketNoValidTokensError, BucketTokenNotFoundError, NoTokenToConsumeError } from '../src/interfaces/Bucket/Errors';
-import { IDocumentAuthUser } from '../src/interfaces/User/IDocumentAuthUser';
-import RedisService from '../src/services/RedisService';
+import { IDocumentUser } from '../src/interfaces/User/IDocumentUser';
+import { BucketModel } from '../src/models/mongoose/BucketModel';
 
 
 describe('BucketService', () => {
     const username =  'testuser'; 
     const password =  'testpassword';
     let mongoServer: MongoMemoryReplSet;
-    let testUser: AuthUser
-    let createdTestUser: IDocumentAuthUser
+    let testUser: {
+        userName: string
+        password:string
+        token: string
+    };
+    let createdTestUser: IDocumentUser
 
     beforeAll(async () => {
         mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
@@ -27,15 +30,16 @@ describe('BucketService', () => {
 
     beforeEach(async () => {
         await UserModel.deleteMany({});
-        const token = AuthService.generateToken(username);
+        await BucketModel.deleteMany({})
+        const token = UserService.generateToken(username);
 
-        testUser = new AuthUser({
+        testUser = {
             userName: username,
             password: password,
             token: token,
-        });
+        };
 
-        const createUserResult = await AuthService.createUser(testUser);
+        const createUserResult = await UserService.createUser(testUser);
         if (!createUserResult.success) {
             throw createUserResult.error;
         }
@@ -95,7 +99,7 @@ describe('BucketService', () => {
     });
 
     it('should add a token to the bucket', async () => {
-        const token: string = AuthService.generateToken(createdTestUser.userName);
+        const token: string = UserService.generateToken(createdTestUser.userName);
         const bucketCreateResult = await BucketService.createBucket(createdTestUser);
         if (!bucketCreateResult.success) {
             throw bucketCreateResult.error
@@ -108,6 +112,36 @@ describe('BucketService', () => {
             throw bucketCountResult.error
         }
         expect(bucketCountResult.data).toBe(1);
+    });
+    it('should revoke a token', async () => {
+        const token = UserService.generateToken(username);   
+
+        const bucketCreatedResult = await BucketService.createBucket(createdTestUser)
+        if(!bucketCreatedResult) {
+            throw new Error("Unexpected error creating bucket")
+        }
+        const bucket = bucketCreatedResult.data
+        if(!bucket) {
+            throw bucketCreatedResult.error
+        }
+        await BucketService.fillBucket({bucket, initialToken: token})
+        expect(bucket.tokens).toContain(token)
+        expect(bucket.revokedTokens).not.toContain(token)
+        const revokeResult = await BucketService.revokeToken({bucket: bucket, token: token});
+        if (!revokeResult) {
+            throw new Error("Unexpected error while revoking token")
+        }
+        if(!revokeResult.success) {
+            throw revokeResult.error
+        }
+        const userRevokedResult = await UserService.getUser(createdTestUser.userName)
+        if(!userRevokedResult) {
+            throw new Error("Unexpected error while get user")
+        }
+
+        expect(revokeResult.success).toBe(true);
+        expect(bucket.tokens).not.toContain(token)
+        expect(bucket.revokedTokens).toContain(token)
     });
 
     it('should throw BucketNoValidTokensError error when trying to check for a token from an empty bucket', async () => {
@@ -131,7 +165,7 @@ describe('BucketService', () => {
             throw new Error('Error updating bucket after clearing tokens');
         }
     
-        const checkResult = await BucketService.checkBucket(bucket);
+        const checkResult = await BucketService.checkIfBucketIsEmpty(bucket);
         if (!checkResult) {
             throw new Error("Error checking bucket");
         }
@@ -141,65 +175,6 @@ describe('BucketService', () => {
             throw new Error("Error not found");
         }
         expect(error).toBeInstanceOf(BucketNoValidTokensError);
-    });
-    it('should throw NoTokenToConsumeError when the bucket has no validTokensToConsume', async () => {
-        const bucketCreateResult = await BucketService.createBucket(createdTestUser);
-        if (!bucketCreateResult.success) {
-            throw bucketCreateResult.error
-        }
-        const bucket = bucketCreateResult.data as IDocumentBucket
-        const checkResult = await BucketService.getTokenToConsume(createdTestUser)
-        
-        if (!checkResult) {
-            throw new Error("Error checking bucket")
-        }
-        const error = checkResult.error
-        if(!error) {
-            throw new Error("Error not found ")
-        }
-
-        expect(error).toBeInstanceOf(NoTokenToConsumeError)
-
-    });
-
-    it('should consume a token from the bucket', async () => {
-        const token: string = AuthService.generateToken(createdTestUser.userName);
-        const bucketCreateResult = await BucketService.createBucket(createdTestUser);
-        if (!bucketCreateResult.success) {
-            throw bucketCreateResult.error
-        }
-        const bucket = bucketCreateResult.data as IDocumentBucket
-    
-        const updatedBucketResult = await BucketService.addToken({token:token, bucket:bucket});
-        if (!updatedBucketResult) {
-            throw new Error('Fail when try to add token')
-        }
-
-        if(!updatedBucketResult.success){
-            throw updatedBucketResult.error
-        }
-
-        const updatedBucket = updatedBucketResult.data
-        if (!updatedBucket) {
-            throw new Error('Fail unpacking update bucket obj')
-        }
-
-        const bucketCountResult = await BucketService.getTokenCount(createdTestUser)
-        if (!bucketCountResult) {
-            throw new Error ('Fail while try to get token count')
-        }
-
-        if (!bucketCountResult.data){
-            throw bucketCountResult.error
-        }
-
-        const bucketCount = bucketCountResult.data
-        const consumeTokenResult = await BucketService.consumeToken(createdTestUser);
-
-        if (!consumeTokenResult) {
-            throw new Error("Error while call consume token method")
-        }
-        expect(consumeTokenResult.success).toBe(true);
     });
     it('should not allow more than 10 tokens', async () => {
         const bucketCreateResult = await BucketService.createBucket(createdTestUser);
@@ -217,7 +192,7 @@ describe('BucketService', () => {
         const testBucket = bucketGetResult.data
         let bucketDocumentToAdd = testBucket
         for (let i = testBucket.tokens.length; i < 10; i++) {
-            const token: string = AuthService.generateToken(createdTestUser.userName);
+            const token: string = UserService.generateToken(createdTestUser.userName);
             const additionResult = await BucketService.addToken({token: token, bucket: testBucket});
             if (!additionResult){
                 throw new Error('Error during adition')
@@ -228,7 +203,7 @@ describe('BucketService', () => {
             bucketDocumentToAdd = additionResult.data
         }
 
-        const extraToken: string = AuthService.generateToken(createdTestUser.userName);
+        const extraToken: string = UserService.generateToken(createdTestUser.userName);
         const addExtraTokenResult = await BucketService.addToken({token: extraToken, bucket: testBucket});
 
         expect(addExtraTokenResult.success).toBe(false)

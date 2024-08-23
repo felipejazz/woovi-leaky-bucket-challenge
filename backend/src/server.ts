@@ -6,7 +6,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { authMiddleware } from './middlewares/authMiddleware';
 import { resolvers } from './resolvers';
 import { typeDefs } from './schema';
-import { AuthService } from './services/AuthService';
+import { UserService } from './services/UserService';
 import RedisService from './services/RedisService';
 import PixWorker from './workers/PixWorker';
 
@@ -15,7 +15,7 @@ async function startServer() {
     const router = new Router();
     await RedisService.initialize();
     
-    const mongoConnectionResult = await AuthService.connectMongo();
+    const mongoConnectionResult = await UserService.connectMongo();
     if (!mongoConnectionResult.success) {
         console.error("Failed to connect to MongoDB");
         process.exit(1); // Opcionalmente, encerra o processo se a conexão falhar

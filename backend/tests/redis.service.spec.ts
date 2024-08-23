@@ -2,10 +2,11 @@ import Redis from "ioredis";
 import RedisService from "../src/services/RedisService";
 
 describe('RedisService', () => {
-    let redisClient: Redis
+    let redisClient: Redis;
 
-    beforeAll(() => {
-        redisClient = RedisService.redis;
+    beforeAll(async () => {
+        await RedisService.initialize();
+        redisClient = RedisService.getInstance().redis;
     });
 
     afterAll(async () => {
@@ -23,6 +24,7 @@ describe('RedisService', () => {
 
         const lockAcquired = await RedisService.acquireLock(key, timeout);
         expect(lockAcquired).toBe(true);
+
         const lockAcquiredAgain = await RedisService.acquireLock(key, timeout);
         expect(lockAcquiredAgain).toBe(false);
 
@@ -30,6 +32,7 @@ describe('RedisService', () => {
 
         const lockAcquiredAfterRelease = await RedisService.acquireLock(key, timeout);
         expect(lockAcquiredAfterRelease).toBe(true);
+
         await RedisService.releaseLock(key);
     });
 });
