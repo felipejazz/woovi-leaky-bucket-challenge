@@ -14,14 +14,12 @@
 // import { InvalidPixKeyError, InvalidPixValueError } from '../src/interfaces/Pix/Errors';
 // import { BucketService } from '../src/services/BucketService';
 
-
 // describe('Auth and PixController Integration', () => {
 //     let app: Koa;
 //     let router: Router;
 //     let mongoServer: MongoMemoryReplSet;
 //     let pixWorker: PixWorker;
 //     let token: string;
-
 
 //     beforeAll(async () => {
 //         mongoServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
@@ -50,7 +48,7 @@
 //         await mongoose.disconnect();
 //         await mongoServer.stop();
 //         await PixService.closeQueues();
-//         await RedisService.teardown(); 
+//         await RedisService.teardown();
 //         await pixWorker.closeWorker();
 //     });
 
@@ -62,7 +60,7 @@
 //     it('should register, login, and successfully simulate a Pix query', async () => {
 //         const username = 'testeuserfull';
 //         const password = 'testpassword';
-    
+
 //         let response = await request(app.callback())
 //             .post('/auth/register')
 //             .send({ userName: username, password: password });
@@ -79,7 +77,6 @@
 //         expect(response.status).toBe(200);
 //         expect(response.body).toHaveProperty('token');
 //         token = response.body.token;
-
 
 //         response = await request(app.callback())
 //             .post('/pix/query')
@@ -169,7 +166,6 @@
 //             .send({ key: 'invalid-key', value: 100 });
 //         const expectedError = new InvalidPixKeyError()
 
-
 //         expect(response.status).toBe(400);
 //         expect(response.body).toEqual({
 //             errorMessage: expectedError.message,
@@ -210,9 +206,7 @@
 //             .post('/pix/query')
 //             .set('Authorization', `Bearer ${token}`)
 //             .send({ key: 'validemail@example.com', value: -100 });
-        
 
-        
 //         const expectedError = new InvalidPixValueError()
 //         expect(response.status).toBe(400);
 //         expect(response.body).toEqual({

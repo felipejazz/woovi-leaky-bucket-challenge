@@ -1,78 +1,76 @@
 export class BucketNoValidTokensError extends Error {
-    constructor(message: string = 'Bucket has no more valid tokens') {
-        super(message);
-        this.name = 'BucketNoValidTokensError';
-    }
+  constructor(message: string = 'Bucket has no more valid tokens') {
+    super(message);
+    this.name = 'BucketNoValidTokensError';
+  }
 }
 
 export class BucketTokenNotFoundError extends Error {
-    constructor(message: string = 'Token not found in the bucket') {
-        super(message);
-        this.name = 'BucketTokenNotFoundError';
-    }
+  constructor(message: string = 'Token not found in the bucket') {
+    super(message);
+    this.name = 'BucketTokenNotFoundError';
+  }
 }
 
 export class CreateBucketError extends Error {
-    constructor(message: string = 'Failed to create bucket in MongoDb') {
-        super(message);
-        this.name = 'CreateBucketError';
-    }
+  constructor(message: string = 'Failed to create bucket in MongoDb') {
+    super(message);
+    this.name = 'CreateBucketError';
+  }
 }
 
 export class BucketNotFoundError extends Error {
-    constructor(message: string = 'Bucket not found in MongoDb') {
-        super(message);
-        this.name = 'BucketNotFoundError';
-        
-    }
+  constructor(message: string = 'Bucket not found in MongoDb') {
+    super(message);
+    this.name = 'BucketNotFoundError';
+  }
 }
 
 export class BucketFullError extends Error {
-    constructor(message: string = 'Bucket is already full') {
-        super(message);
-        this.name = 'BucketFullError';
-    }
+  constructor(message: string = 'Bucket is already full') {
+    super(message);
+    this.name = 'BucketFullError';
+  }
 }
 
 export class BucketServiceAdditionError extends Error {
-    constructor(message: string = 'Failed to add service to bucket') {
-        super(message);
-        this.name = 'BucketServiceAdditionError';
-    }
+  constructor(message: string = 'Failed to add service to bucket') {
+    super(message);
+    this.name = 'BucketServiceAdditionError';
+  }
 }
 
 export class BucketCountError extends Error {
-    constructor(message: string = 'Failed to retrieve token count from bucket') {
-        super(message);
-        this.name = 'BucketCountError';
-    }
+  constructor(message: string = 'Failed to retrieve token count from bucket') {
+    super(message);
+    this.name = 'BucketCountError';
+  }
 }
 export class NoTokenToConsumeError extends Error {
-    constructor(message: string = 'No valid token token to consume in bucket') {
-        super(message);
-        this.name = 'NoTokenToConsumeError';
-                Object.setPrototypeOf(this, NoTokenToConsumeError.prototype);
-    }
+  constructor(message: string = 'No valid token token to consume in bucket') {
+    super(message);
+    this.name = 'NoTokenToConsumeError';
+    Object.setPrototypeOf(this, NoTokenToConsumeError.prototype);
+  }
 }
 
 export class BucketUnexpectedError extends Error {
-    constructor(message: string = 'Unexpected error during bucket operation') {
-        super(message);
-        this.name = 'GetBucketUnexpectedError';
-    }
+  constructor(message: string = 'Unexpected error during bucket operation') {
+    super(message);
+    this.name = 'GetBucketUnexpectedError';
+  }
 }
 
 export class BucketRevokeTokenError extends Error {
-    constructor(message: string = 'Fail while revoking token') {
-        super(message);
-        this.name = 'BukcetRevokeTokenError';
-    }
+  constructor(message: string = 'Fail while revoking token') {
+    super(message);
+    this.name = 'BukcetRevokeTokenError';
+  }
 }
 
-
 export class BucketTokenVerificationError extends Error {
-    constructor(message: string = 'Esrror verifying token operation') {
-        super(message);
-        this.name = 'BucketTokenVerificationError';
-    }
+  constructor(message: string = 'Esrror verifying token operation') {
+    super(message);
+    this.name = 'BucketTokenVerificationError';
+  }
 }

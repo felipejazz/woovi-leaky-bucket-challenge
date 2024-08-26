@@ -1,7 +1,7 @@
-import { IUser } from "../User/IUser";
+import { IUser } from '../User/IUser';
 
-export interface IBucket{
-    user: IUser;
-    token: Array<string>;
-    lastTimeStamp: Date;
+export interface IBucket {
+  user: IUser;
+  token: Array<string>;
+  lastTimeStamp: Date;
 }

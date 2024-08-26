@@ -16,7 +16,6 @@ const AuthForm: React.FC = () => {
   const handleAuth = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    console.log('userName:', username);
   
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -58,7 +57,6 @@ const AuthForm: React.FC = () => {
                 alert('User already exists in our database.');
               } else {
                 alert('Registration failed due to unknown causes.');
-                console.log(errorMessage);
               }
               setIsLogin(true);
             }

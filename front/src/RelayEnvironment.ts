@@ -6,9 +6,10 @@ import {
   FetchFunction,
 } from "relay-runtime";
 
-const GRAPHQL_ENDPOINT = "http://felipejazz.com:3000/graphql";
-const LOGIN_ENDPOINT = "http://felipejazz.com:3000/auth/login";
-const REGISTER_ENDPOINT = "http://felipejazz.com:3000/auth/register";
+const GRAPHQL_ENDPOINT = process.env.REACT_APP_GRAPHQL_ENDPOINT || "http://felipejazz.com:3000/graphql";
+const LOGIN_ENDPOINT = process.env.REACT_APP_LOGIN_ENDPOINT || "http://felipejazz.com:3000/auth/login";
+const REGISTER_ENDPOINT = process.env.REACT_APP_REGISTER_ENDPOINT || "http://felipejazz.com:3000/auth/register";
+
 
 function getAuthToken() {
   

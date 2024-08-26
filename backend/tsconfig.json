@@ -11,4 +11,3 @@
   },
   "include": ["src/**/*.ts", "src/koa.d.ts"]
 }
-

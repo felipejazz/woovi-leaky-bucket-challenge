@@ -20,7 +20,6 @@ interface GraphQLContext {
   ctx: Context;
 }
 
-
 export const resolvers = {
   Mutation: {
     register: async (

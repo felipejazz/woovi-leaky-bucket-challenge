@@ -1,5 +1,23 @@
 
 services:
+  woovi-mongo:
+    build: ./db
+    container_name: woovi-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
+
+  woovi-redis:
+    build: ./redis
+    container_name: woovi-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - backend-network
+
   backend-server:
     build:
       context: ./backend
@@ -9,11 +27,21 @@ services:
       - "3000:3000"
     networks:
       - backend-network
+    depends_on:
+      - woovi-mongo
+      - woovi-redis
+    environment:
+      - MONGO_URI=mongodb://woovi-mongo:27017/woovi-challenge
+      - SECRET_KEY='woovi-challenge-secret
+      - REDIS_URL=redis://woovi-redis:6379
+      - REDIS_HOST=woovi-redis
+      - REDIS_PORT=6379
+      - WEBSITE_URL=http://localhost:3001
 
   frontend-server:
     build:
       context: ./front
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: woovi-challenge-frontend-server
     ports:
       - "3001:3001"
@@ -21,6 +49,14 @@ services:
       - backend-network
     depends_on:
       - backend-server
+    environment:
+      - REACT_APP_GRAPHQL_ENDPOINT=http://localhost:3000/graphql
+      - REACT_APP_REGISTER_ENDPOINT=http://localhost:3000/auth/register
+      - REACT_APP_LOGIN_ENDPOINT=http://localhost:3000/auth/login
+
+volumes:
+  mongo-data:
+
 networks:
   backend-network:
     driver: bridge

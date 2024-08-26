@@ -30,6 +30,13 @@ services:
     depends_on:
       - woovi-mongo
       - woovi-redis
+    environment:
+      - MONGO_URI=mongodb://woovi-mongo:27017/woovi-challenge
+      - SECRET_KEY='woovi-challenge-secret
+      - REDIS_URL=redis://woovi-redis:6379
+      - REDIS_HOST=woovi-redis
+      - REDIS_PORT=6379
+      - WEBSITE_URL=http://felipejazz.com:3001
 
   frontend-server:
     build:
@@ -42,6 +49,10 @@ services:
       - backend-network
     depends_on:
       - backend-server
+    enviroment:
+      - GRAPHQL_ENDPOINT=http://felipejazz.com:3000/graphql
+      - REGISTER_ENDPOINT=http://felipejazz.com:3000/auth/register
+      - LOGIN_ENDPOINT=http://felipejazz.com:3000/auth/login
 
 volumes:
   mongo-data:

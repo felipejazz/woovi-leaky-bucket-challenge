@@ -1,5 +1,4 @@
-
 export interface IAuthRequestBody {
-    userName: string;
-    password: string;
+  userName: string;
+  password: string;
 }
