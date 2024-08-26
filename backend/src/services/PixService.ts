@@ -162,7 +162,7 @@ export class PixService {
 
   static isValidPixKey(key: string): Result<boolean> {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
 
     if (!emailRegex.test(key) && !phoneRegex.test(key)) {
       logger.warn(`Invalid Pix key format: ${key}`);
