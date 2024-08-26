@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { register(username: $username, password: $password) { errorMessage successMessage} }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
+					"raw": "{\n  \"query\": \"mutation($userName: String!, $password: String!) { register(userName: $userName, password: $password) { errorMessage successMessage} }\",\n  \"variables\": {\n    \"userName\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -21,10 +21,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/register",
+					"raw": "http://felipejazz.com:3000/auth/register",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"felipejazz",
+						"com"
 					],
 					"port": "3000",
 					"path": [
@@ -43,7 +44,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhYzRmZjVjLTE2OGMtNDJmYS1hNjlkLWRlZDQyOTI0NDY0YiIsInVzZXJuYW1lIjoibmV3dXNlciIsImlhdCI6MTcyMzQ4MTE5MiwiZXhwIjoxNzIzNDg0NzkyfQ.CRmSKMA3UZIsOEvkuW3UhLIXjYcDOCQx92wVZVipTg0",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibmV3dXNlcnJyIiwibm9uY2UiOiI5MGU1OGQxYi0zYmQxLTRkZTAtYWU0NC1kM2NhOGJlNWQzOGMiLCJpYXQiOjE3MjQzOTQ5NzQsImV4cCI6MTcyNDM5ODU3NH0.OATuoRvxlVGkAQDDIBZWXgZXG3BKfbIREPmIpbCDCR",
 							"type": "string"
 						}
 					]
@@ -52,7 +53,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation($username: String!, $password: String!) { login(username: $username, password: $password) { token } }\",\n  \"variables\": {\n    \"username\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
+					"raw": "{\n  \"query\": \"mutation($userName: String!, $password: String!) { login(userName: $userName, password: $password) { message token } }\",\n  \"variables\": {\n    \"userName\": \"newuser\",\n    \"password\": \"newpassword\"\n  }\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -60,10 +61,11 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/auth/login",
+					"raw": "http://felipejazz.com:3000/auth/login",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"felipejazz",
+						"com"
 					],
 					"port": "3000",
 					"path": [
@@ -82,7 +84,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlkZWU3NmNiLTExMGYtNDYyYi04OWY4LWZmMzUwYzUyMGNmNSIsInVzZXJuYW1lIjoibmV3dXNlciIsImlhdCI6MTcyMzU3NDY1OCwiZXhwIjoxNzIzNTc4MjU4fQ.fZvCtX3oJi8Dh-BpinuqOKerN-_HXMxaqOp0CDcc4os",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoibmV3dXNlcnJyIiwibm9uY2UiOiJiY2U0NDJkYy00OTc1LTRiMGEtODljMS1mNDQ3ZDA3YTk3N2IiLCJpYXQiOjE3MjQzOTUyNDUsImV4cCI6MTcyNDM5ODg0NX0.mrTm4SafWQL81F9_q47kSw9CSYoVDfb1n4P3YoslqdA",
 							"type": "string"
 						}
 					]
@@ -91,7 +93,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"query\": \"mutation($key: String!, $value: Float!) { simulatePixQuery(key: $key, value: $value) { successMessage errorMessage tokensLeft } }\",\n  \"variables\": {\n    \"key\": \"email@example.com\",\n    \"value\": -100.50\n  }\n}\n",
+					"raw": "{\n  \"query\": \"mutation($key: String!, $value: Float!) { simulatePixQuery(key: $key, value: $value) { successMessage errorMessage tokensLeft newUserToken } }\",\n  \"variables\": {\n    \"key\": \"email@example.com\",\n    \"value\": -100.50\n  }\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -99,12 +101,12 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/graphql",
+					"raw": "http://felipejazz.com/graphql",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"felipejazz",
+						"com"
 					],
-					"port": "3000",
 					"path": [
 						"graphql"
 					]
