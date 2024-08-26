@@ -49,7 +49,7 @@ services:
       - backend-network
     depends_on:
       - backend-server
-    enviroment:
+    environment:
       - GRAPHQL_ENDPOINT=http://felipejazz.com:3000/graphql
       - REGISTER_ENDPOINT=http://felipejazz.com:3000/auth/register
       - LOGIN_ENDPOINT=http://felipejazz.com:3000/auth/login
